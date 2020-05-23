@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Fills the fields of a given Config struct with default values.
 void initialise_config(struct Config *cfg) {
   cfg->file_path          = DEFAULT_FILE_PATH;
   cfg->new_file_name      = DEFAULT_NEW_FILE_NAME;
@@ -175,6 +176,7 @@ int parse_arg(
   }
   if (!is_flag(argv[at])) {
     cfg->file_path = argv[at];
+    return at + 1;
   }
   if (!is_long_flag(argv[at])) {
     return parse_short_flag(cfg, argc, argv, at);

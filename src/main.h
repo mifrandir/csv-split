@@ -6,4 +6,6 @@
 // Splits a CSV file based on the given config.
 void split_csv(const struct Config *cfg);
 
+#define FILE_NAME_SUFFIX_BUFFER 128
+
 #endif

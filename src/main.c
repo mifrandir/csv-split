@@ -43,6 +43,7 @@ size_t remove_linebreak(char *str, size_t len) {
 
 void load_headers(
     const struct Config *cfg, FILE *f, size_t *len, char ***headers) {
+  LOG("Getting file headers\n");
   if (f == NULL) {
     exit(EXIT_FAILURE);
   }
@@ -105,6 +106,7 @@ void filter_line(
   if (ouput_length == input_length) {   // If there's nothing to filter, we can
                                         // just copy the enitre array.
     memcpy(output, input, input_length * sizeof(char *));
+    LOG("Skipped filtering because input and output sizes are identical.\n");
     return;
   }
   size_t i, j;
@@ -172,13 +174,20 @@ void write_line(
 
 void write_batch(
     const struct Config *config, char **headers, struct Batch *output) {
+  LOG("Writing batch #%lu to file (%s).\n", file_count - 1, output->file_name);
   FILE *f = fopen(output->file_name, "w+");
   if (f == NULL) {
+    ERR_LOG(
+        "An error occured opening or creating file #%lu (%s).\n",
+        file_count - 1,
+        output->file_name);
     exit(1);
   }
   if (!config->exclude_headers) {
+    LOG("Writing headers.\n");
     write_line(config, f, output->column_count, headers);
   }
+  LOG("Writing values.\n");
   for (size_t i = 0; i < output->line_count; i++) {
     write_line(config, f, output->column_count, output->values[i]);
   }
@@ -248,6 +257,7 @@ void initialise_batch(
 }
 
 void split_csv(const struct Config *cfg) {
+  LOG("Splitting file\n");
   if (access(cfg->file_path, F_OK) == -1) {
     fprintf(stderr, "File does not exist. (%s)\n", cfg->file_path);
   }
@@ -257,6 +267,7 @@ void split_csv(const struct Config *cfg) {
   char **input_headers = NULL;
   size_t input_length  = 0;
   load_headers(cfg, f, &input_length, &input_headers);
+  LOG("Filtering file headers\n");
   char include_column[input_length];
   size_t output_length =
       find_relevant_columns(cfg, input_length, input_headers, include_column);
@@ -268,6 +279,7 @@ void split_csv(const struct Config *cfg) {
       include_column,
       output_length,
       output_headers);
+  LOG("Headers parsed: input_cols=%lu, output_cols=%lu\n",
       input_length,
       output_length);
   struct Batch output_buffer = {0, 0, NULL, NULL, NULL};

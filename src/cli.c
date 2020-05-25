@@ -41,7 +41,7 @@ int is_natural(const char *arg) {
 // Given a path to a file, the columns the user wants to exclude are parsed and
 // saved in the config struct.
 int parse_remove_columns(struct Config *cfg, const char *file) {
-  fprintf(stderr, "Removing columns has not yet been implemented.\n");
+  ERR_LOG("Removing columns has not yet been implemented.\n");
   return 0;
 }
 
@@ -63,7 +63,7 @@ size_t parse_flag_by_index(
     case NEW_FILE_NAME:
       if (at + 1 == argc) {   // Any string will be treated as a file name, as
                               // long as it's there.
-        fprintf(stderr, "Expected file name. Use --help to learn more.\n");
+        ERR_LOG("Expected file name. Use --help to learn more.\n");
         exit(PARSE_ERR);
       }
       arg                = argv[at + 1];
@@ -72,22 +72,22 @@ size_t parse_flag_by_index(
     case EXCLUDE_HEADERS: cfg->exclude_headers = 1; return at + 1;
     case LINE_COUNT:
       if (at + 1 == argc) {
-        fprintf(stderr, "Expected line count. Use --help to learn more.\n");
+        ERR_LOG("Expected line count. Use --help to learn more.\n");
         exit(PARSE_ERR);
       }
       if (!is_natural(argv[at + 1])) {
-        fprintf(stderr, "Expected valid positive integer as line count.\n");
+        ERR_LOG("Expected valid positive integer as line count.\n");
       }
       cfg->line_count = atoi(arg);
       if (cfg->line_count <= 0) {
-        fprintf(stderr, "Line count needs to be greater than zero.\n");
+        ERR_LOG("Line count needs to be greater than zero.\n");
         exit(PARSE_ERR);
       }
       return at + 2;   // Read extra argument.
     case DELIMITER:
       if (at + 1 == argc ||
           strlen(argv[at + 1]) > 1) {   // Expected single character.
-        fprintf(stderr, "Expected delimiter. Use --help to learn more.\n");
+        ERR_LOG("Expected delimiter. Use --help to learn more.\n");
         exit(PARSE_ERR);
       }
       cfg->delimiter = argv[at + 1][0];
@@ -95,13 +95,12 @@ size_t parse_flag_by_index(
     case REMOVE_COLUMNS:
       if (at + 1 == argc) {   // Any string will be treated as a file name, as
                               // lon as it's there.
-        fprintf(stderr, "Expected file name. Use --help to learn more.\n");
+        ERR_LOG("Expected file name. Use --help to learn more.\n");
         exit(PARSE_ERR);
       }
       arg = argv[at + 1];
       if (!parse_remove_columns(cfg, arg)) {
-        fprintf(
-            stderr, "Failed to parse columns to exclude. (file: %s)\n", arg);
+        ERR_LOG("Failed to parse columns to exclude. (file: %s)\n", arg);
         exit(PARSE_ERR);
       }
       return at + 2;
@@ -137,7 +136,7 @@ int parse_short_flag(
       }
     }
     if (!found) {
-      fprintf(stderr, "Unknown option -%c\n", argv[at][1]);
+      ERR_LOG("Unknown option -%c\n", argv[at][1]);
       exit(PARSE_ERR);
     }
   } while (argv[at][++subflag]);   // Checking for \0 in flag string; intial
@@ -159,7 +158,7 @@ size_t parse_long_flag(
       return parse_flag_by_index(cfg, argc, argv, at, f - FLAGS);
     }
   }
-  fprintf(stderr, "Unknown option --%s\n", argv[at]);
+  ERR_LOG("Unknown option --%s\n", argv[at]);
   exit(PARSE_ERR);
 }
 
@@ -171,16 +170,20 @@ size_t parse_long_flag(
 // Exits if a PARSE_ERR is encountered.
 int parse_arg(
     struct Config *cfg, const int argc, const char **argv, size_t at) {
+  LOG("Parsing argument at %lu\n", at);
   if (at < 1 || at >= argc) {
     return argc;
   }
   if (!is_flag(argv[at])) {
+    LOG("Found file path\n");
     cfg->file_path = argv[at];
     return at + 1;
   }
   if (!is_long_flag(argv[at])) {
+    LOG("Found short style flag\n");
     return parse_short_flag(cfg, argc, argv, at);
   }
+  LOG("Found long style flag\n");
   return parse_long_flag(cfg, argc, argv, at);
 }
 
@@ -232,6 +235,7 @@ void print_help(void) {
 
 // Parses the given command line arguments into the given config struct.
 void parse_config(struct Config *cfg, const int argc, const char **argv) {
+  LOG("Parsing config.\n");
   for (size_t i = 1; i < argc;) {
     i = parse_arg(cfg, argc, argv, i);
   }

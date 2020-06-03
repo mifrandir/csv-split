@@ -274,6 +274,7 @@ void split_csv(const struct Config *cfg) {
   LOG("Splitting file\n");
   if (access(cfg->file_path, F_OK) == -1) {
     fprintf(stderr, "File does not exist. (%s)\n", cfg->file_path);
+    exit(EXIT_FAILURE);
   }
   FILE *f = fopen(cfg->file_path, "r");
   // Processing file header.

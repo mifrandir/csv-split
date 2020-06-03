@@ -1,8 +1,6 @@
 #ifndef LOG_H
 #define LOG_H
 
-#define DEBUG
-
 #include <stdio.h>
 
 #define ERR_LOG(FMT, ...) fprintf(stderr, FMT, ##__VA_ARGS__)

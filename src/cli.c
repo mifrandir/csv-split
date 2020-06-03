@@ -78,11 +78,12 @@ size_t parse_flag_by_index(
       if (!is_natural(argv[at + 1])) {
         ERR_LOG("Expected valid positive integer as line count.\n");
       }
-      cfg->line_count = atoi(arg);
+      cfg->line_count = atoi(argv[at + 1]);
       if (cfg->line_count <= 0) {
         ERR_LOG("Line count needs to be greater than zero.\n");
         exit(PARSE_ERR);
       }
+      LOG("Found line count: %lu\n", cfg->line_count);
       return at + 2;   // Read extra argument.
     case DELIMITER:
       if (at + 1 == argc ||

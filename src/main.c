@@ -6,6 +6,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "cli.h"
+
 int main(const int argc, const char *argv[]) {
   struct Config cfg;
   initialise_config(&cfg);
@@ -45,6 +47,7 @@ void load_headers(
     const struct Config *cfg, FILE *f, size_t *len, char ***headers) {
   LOG("Getting file headers\n");
   if (f == NULL) {
+    ERR_LOG("Received NULL as file.\n");
     exit(EXIT_FAILURE);
   }
   // Reading the line
@@ -64,11 +67,11 @@ void load_headers(
   size_t i = 0;
   for (begin = line; begin - line < line_len; begin++) {
     for (end = begin; *end != WORKING_DELIM; end++)
-      ;   // The end of every column header is \n now.
+      ;   // The end of every column header is WORKING_DELIM now.
     new_header = calloc(end - begin + 1, sizeof(char));
-    // THIS ONLY WORKS IF WORKING DELIM IS '\0'!!!!!
     strcpy(new_header, begin);
     (*headers)[i++] = new_header;
+    begin           = end;
   }
   free(line);
 }
@@ -138,6 +141,7 @@ void load_values(
     const size_t input_column_count,
     char **values) {
   size_t actual_column_count;
+  remove_linebreak(line, strlen(line));
   if (input_column_count !=
       (actual_column_count =
            strsub(line, config->delimiter, WORKING_DELIM) + 1)) {
@@ -158,6 +162,15 @@ void load_values(
     *(next_value++) = begin;
     begin           = end;
   }
+  for (size_t i = 0; i < input_column_count; i++) {
+    char *p = values[i];
+    while (*p != '\0') {
+      if (*(p++) == '\n') {
+        LOG("WARNING: Found newline in value\n");
+      }
+    }
+  }
+  LOG("Wrote %lu values\n", next_value - values);
 }
 
 void write_line(
@@ -213,8 +226,9 @@ void process_batch(
     read = getline(line, len, file);
     if (read == -1) {
       if (config->include_remainders) {
-        write_batch(config, headers, output);
+        LOG("Writing remainders\n");
         output->line_count = i;
+        write_batch(config, headers, output);
       }
       return;
     }

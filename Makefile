@@ -22,8 +22,8 @@ mkdir:
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(BIN_DIR)
 
-$(PROG_NAME): mkdir compile
-	$(LD) $(OBJ_LIST) -o $(BIN_DIR)/$@
+build: mkdir compile
+	$(LD) $(OBJ_LIST) -o $(BIN_DIR)/$(PROG_NAME)
 
 clean:
 	rm -rf $(BIN_DIR) $(BUILD_DIR)

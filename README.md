@@ -8,20 +8,39 @@ A simple command line program that splits CSV (comma-separated values) files int
 
 ## Installation
 
-Clone the repository:
+Clone the repository and change into directory:
 
 ```
 $ git clone https://github.com/miltfra/csv-split
-```
-
-Change into directory and make binary:
-
-```
 $ cd csv-split
-$ make
 ```
 
-You can move the resulting binary (`bin/csv-split`) into your path (e.g. `$HOME/.local/bin`) for convenient use anywhere on your system.
+Create binary in `bin/`:
+
+```
+$ make build
+```
+
+Install to `/usr/local/bin/` (superuser):
+
+```
+# make install
+```
+
+Install to local directory (e.g. `$HOME/.local/bin):
+
+```
+$ make DESTDIR=$HOME/.local/bin install-local
+```
+
+Installations can be undone with the correspodning `uninstall` and `uninstall-local` commands.
+
+To force a complete rebuild, use
+
+```
+$ make clean
+$ make build
+```
 
 ## Usage
 

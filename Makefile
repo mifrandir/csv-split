@@ -26,3 +26,6 @@ $(PROG_NAME): mkdir compile
 
 clean:
 	rm -rf $(BIN_DIR) $(BUILD_DIR)
+
+check:
+	echo "No checks implemented, yet."

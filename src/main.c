@@ -204,6 +204,7 @@ void write_batch(
   for (size_t i = 0; i < output->line_count; i++) {
     write_line(config, f, output->column_count, output->values[i]);
   }
+  fclose(f);
 }
 
 void process_batch(

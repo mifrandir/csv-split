@@ -36,6 +36,7 @@ static size_t remove_linebreak(char *str, size_t len) {
 
 #define WORKING_DELIM '\0'
 
+// Reads the first line of a file and extracts its headers.
 static void load_headers(
     const struct Config *cfg, FILE *f, size_t *len, char ***headers) {
   LOG("Getting file headers\n");
@@ -69,9 +70,10 @@ static void load_headers(
   free(line);
 }
 
+// How many files have been written.
 size_t file_count = 0;
-size_t line_count = 0;
 
+// Removes the columns specified in the CONFIG from the INCLUDE_COLUMN set.
 static size_t find_relevant_columns(
     const struct Config *config,
     const size_t input_length,
@@ -91,6 +93,8 @@ static size_t find_relevant_columns(
   return output_length;
 }
 
+// Given a config and a set of input values, this functions generates an output array
+// containing only those columns that are not to be excluded by the config.
 static void filter_line(
     const struct Config *config,
     const size_t input_length,          // number of columns in input file
@@ -115,6 +119,7 @@ static void filter_line(
   }
 }
 
+// Holds memory for the current set of lines that is being processed.
 struct Batch {
   size_t line_count;
   size_t column_count;
@@ -139,9 +144,7 @@ static void load_values(
       (actual_column_count = strsub(line, config->delimiter, WORKING_DELIM) + 1)) {
     fprintf(
         stderr,
-        "Unexpected number of columns in input on line %lu. (expected: %lu, "
-        "found: %lu)\n",
-        line_count,
+        "Unexpected number of columns in input. (expected: %lu, found: %lu)\n",
         input_column_count,
         actual_column_count);
     exit(1);
@@ -165,6 +168,8 @@ static void load_values(
   LOG("Wrote %lu values\n", next_value - values);
 }
 
+// Writes a single line to F filled with COLUMN_COUNT fields of VALUES separated by
+// CONFIG->DELIMITER.
 static void write_line(
     const struct Config *config, FILE *f, const size_t column_count, char **values) {
   fprintf(f, "%s", values[0]);   // Having less than one column is impossible.
@@ -174,6 +179,7 @@ static void write_line(
   putc('\n', f);
 }
 
+// Writes OUTPUT to the correct file using CONFIG and HEADERS for formatting.
 static void write_batch(
     const struct Config *config, char **headers, struct Batch *output) {
   LOG("Writing batch #%lu to file (%s).\n", file_count - 1, output->file_name);
@@ -196,6 +202,7 @@ static void write_batch(
   fclose(f);
 }
 
+// Reads the next set of lines from the input and processes them.
 static void process_batch(
     const struct Config *config,
     FILE *file,
@@ -235,6 +242,7 @@ static void process_batch(
   write_batch(config, headers, output);
 }
 
+// Given a new BATCH this function initialises its values to be ready for use.
 static void initialise_batch(
     const struct Config *config,
     struct Batch *batch,
@@ -258,6 +266,7 @@ static void initialise_batch(
   batch->column_count = cols;
 }
 
+// Splits a file by lines and writes them to outputs as specified in CFG.
 void split_csv(const struct Config *cfg) {
   LOG("Splitting file\n");
   if (access(cfg->file_path, F_OK) == -1) {

@@ -11,12 +11,14 @@ LIST = $(SRC_LIST:%.c=%)
 SRC_LIST = $(notdir $(wildcard $(SRC_DIR)/*.c))
 OBJ_LIST = $(addprefix $(BUILD_DIR)/,$(LIST:%=%.o))
 
-.PHONY: all clean $(PROG_NAME) compile
+.PHONY: all clean $(PROG_NAME) compile install install-local uninstall uninstall-local
 
 all: $(PROG_NAME)
 
-compile: 
-	$(foreach f, $(LIST), $(CC) -c $(CFLAG) -o $(BUILD_DIR)/$(f).o $(SRC_DIR)/$(f).c;)
+$(BUILD_DIR)/%.o:
+	$(CC) -c $(CFLAG) -o $@ $(SRC_DIR)/$(notdir $(@:%.o=%.c))
+
+compile: $(OBJ_LIST)
 
 mkdir:
 	mkdir -p $(BUILD_DIR)

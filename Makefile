@@ -1,5 +1,5 @@
-CC          = gcc
-LD          = gcc
+CC          = cc
+LD          = cc
 CFLAG       = -Wall
 PROG_NAME   = csv-split
 

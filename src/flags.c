@@ -1,33 +1,24 @@
-#include "cli.h"
+#include "flags.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// Fills the fields of a given Config struct with default values.
-void initialise_config(struct Config *cfg) {
-  cfg->file_path          = DEFAULT_FILE_PATH;
-  cfg->new_file_name      = DEFAULT_NEW_FILE_NAME;
-  cfg->exclude_headers    = DEFAULT_EXCLUDE_HEADERS;
-  cfg->include_remainders = DEFAULT_INCLUDE_REMAINDERS;
-  cfg->delimiter          = DEFAULT_DELIMITER;
-  cfg->line_count         = DEFAULT_LINE_COUNT;
-  cfg->remove_columns_l   = 0;
-  cfg->remove_columns     = NULL;
-}
+#include "config.h"
+#include "log.h"
 
 // Returns 1 iff the arguments first character is a '-'
-int is_flag(const char *arg) {
+static int is_flag(const char *arg) {
   return arg[0] == '-';
 }
 
 // Returns 1 iff the arguments second character is a '-'
-int is_long_flag(const char *arg) {
+static int is_long_flag(const char *arg) {
   return arg[1] == '-';
 }
 
 // Returns 1 iff the argument only contains numerical digits.
-int is_natural(const char *arg) {
+static char is_natural(const char *arg) {
   size_t i = 0;
   while (arg[i]) {
     if (arg[i] < 48 || arg[i] > 57) {
@@ -40,7 +31,7 @@ int is_natural(const char *arg) {
 
 // Given a path to a file, the columns the user wants to exclude are parsed and
 // saved in the config struct.
-int parse_remove_columns(struct Config *cfg, const char *file) {
+static int parse_remove_columns(struct Config *cfg, const char *file) {
   ERR_LOG("Removing columns has not yet been implemented.\n");
   return 0;
 }
@@ -52,12 +43,8 @@ int parse_remove_columns(struct Config *cfg, const char *file) {
 // found.
 //
 // Exits if a PARSE_ERR is encountered.
-size_t parse_flag_by_index(
-    struct Config *cfg,
-    const int argc,
-    const char **argv,
-    size_t at,
-    size_t flag) {
+static size_t parse_flag_by_index(
+    struct Config *cfg, const int argc, const char **argv, size_t at, size_t flag) {
   const char *arg;
   switch (flag) {
     case NEW_FILE_NAME:
@@ -86,8 +73,7 @@ size_t parse_flag_by_index(
       LOG("Found line count: %lu\n", cfg->line_count);
       return at + 2;   // Read extra argument.
     case DELIMITER:
-      if (at + 1 == argc ||
-          strlen(argv[at + 1]) > 1) {   // Expected single character.
+      if (at + 1 == argc || strlen(argv[at + 1]) > 1) {   // Expected single character.
         ERR_LOG("Expected delimiter. Use --help to learn more.\n");
         exit(PARSE_ERR);
       }
@@ -118,7 +104,7 @@ size_t parse_flag_by_index(
 // found.
 //
 // Exits if a PARSE_ERR is encountered.
-int parse_short_flag(
+static int parse_short_flag(
     struct Config *cfg, const int argc, const char **argv, size_t at) {
   size_t subflag = 1;   // First character is -, so first flag char is at 1.
   size_t new_at;
@@ -152,7 +138,7 @@ int parse_short_flag(
 // found.
 //
 // Exits if a PARSE_ERR is encountered.
-size_t parse_long_flag(
+static size_t parse_long_flag(
     struct Config *cfg, const int argc, const char **argv, size_t at) {
   for (struct Flag *f = FLAGS; f < FLAGS + FLAG_COUNT; f++) {
     if (!strcmp(argv[at] + 2, f->long_id)) {
@@ -163,32 +149,9 @@ size_t parse_long_flag(
   exit(PARSE_ERR);
 }
 
-// Parses the next argument in the argument array.
-//
-// Returns the index of the argument array where the next argument will be
-// found.
-//
-// Exits if a PARSE_ERR is encountered.
-int parse_arg(
-    struct Config *cfg, const int argc, const char **argv, size_t at) {
-  LOG("Parsing argument at %lu\n", at);
-  if (at < 1 || at >= argc) {
-    return argc;
-  }
-  if (!is_flag(argv[at])) {
-    LOG("Found file path\n");
-    cfg->file_path = argv[at];
-    return at + 1;
-  }
-  if (!is_long_flag(argv[at])) {
-    LOG("Found short style flag\n");
-    return parse_short_flag(cfg, argc, argv, at);
-  }
-  LOG("Found long style flag\n");
-  return parse_long_flag(cfg, argc, argv, at);
-}
-
-size_t flag_length(struct Flag *f) {
+// Given a Flag, this function returns the length this flag will occupy in the help output
+// just by its long style flag and the corresponding argument(s)
+static size_t flag_length(struct Flag *f) {
   return 3 + strlen(f->long_id) + strlen(f->arg);
 }
 
@@ -205,43 +168,26 @@ size_t max_flag_length() {
   return max;
 }
 
-#define HELP_OUT stderr
-
-// Prints a string to stderr and adds spaces to the right such that the total
-// length is len.
-void print_right_padded(const char *str, size_t len) {
-  fprintf(HELP_OUT, "%s", str);
-  for (size_t i = 0; i < len - strlen(str); i++) {
-    putc(' ', HELP_OUT);
+// Parses the next argument in the argument array.
+//
+// Returns the index of the argument array where the next argument will be
+// found.
+//
+// Exits if a PARSE_ERR is encountered.
+int parse_arg(struct Config *cfg, const int argc, const char **argv, size_t at) {
+  LOG("Parsing argument at %lu\n", at);
+  if (at < 1 || at >= argc) {
+    return argc;
   }
-}
-
-// Prints a given Flag struct as required by the --help flag.
-void print_option(struct Flag *f, size_t max) {
-  fprintf(HELP_OUT, "\t-%c, --%s ", f->short_id, f->long_id);
-  print_right_padded(f->arg, max - strlen(f->long_id));
-  fprintf(HELP_OUT, "\t%s\n", f->desc);
-}
-
-// Prints useful information about the program as required by the --help flag.
-void print_help(void) {
-  fprintf(HELP_OUT, "%s\n\n", TITLE);
-  fprintf(HELP_OUT, "USAGE:\n\t%s\n\n", USAGE);
-  fprintf(HELP_OUT, "OPTIONS:\n");
-  size_t max = max_flag_length();
-  for (int i = 0; i < FLAG_COUNT; i++) {
-    print_option(FLAGS + i, max);
+  if (!is_flag(argv[at])) {
+    LOG("Found file path\n");
+    cfg->file_path = argv[at];
+    return at + 1;
   }
-}
-
-// Parses the given command line arguments into the given config struct.
-void parse_config(struct Config *cfg, const int argc, const char **argv) {
-  LOG("Parsing config.\n");
-  for (size_t i = 1; i < argc;) {
-    i = parse_arg(cfg, argc, argv, i);
+  if (!is_long_flag(argv[at])) {
+    LOG("Found short style flag\n");
+    return parse_short_flag(cfg, argc, argv, at);
   }
-  if (!cfg->file_path) {
-    fprintf(HELP_OUT, "Expected input file. Use --help to learn more.\n");
-    exit(PARSE_ERR);
-  }
+  LOG("Found long style flag\n");
+  return parse_long_flag(cfg, argc, argv, at);
 }

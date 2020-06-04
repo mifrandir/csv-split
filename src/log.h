@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 
+#define ARG_ERR           -1
+#define PARSE_ERR         -2
+#define HELP_OUT          stderr
 #define ERR_LOG(FMT, ...) fprintf(stderr, FMT, ##__VA_ARGS__)
 
 #ifdef DEBUG

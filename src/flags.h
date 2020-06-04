@@ -1,35 +1,17 @@
+#ifndef FLAGS_H
+#define FLAGS_H
 
-#include <stdlib.h>
+#include <stdio.h>
 
-#include "log.h"
+#include "config.h"
 
-#ifndef CLI_H
-#define CLI_H
-
-#define ARG_ERR   -1
-#define PARSE_ERR -2
-
-#define DEFAULT_FILE_PATH          NULL
-#define DEFAULT_NEW_FILE_NAME      "split"
-#define DEFAULT_EXCLUDE_HEADERS    0
-#define DEFAULT_LINE_COUNT         1
-#define DEFAULT_DELIMITER          ','
-#define DEFAULT_INCLUDE_REMAINDERS 0
-
-struct Config {
-  /* Strings */
-  const char *file_path;
-  const char *new_file_name;
-  /* Boleans */
-  char exclude_headers;
-  char include_remainders;
-  /* Other values */
-  char delimiter;
-  size_t line_count;
-  size_t remove_columns_l;
-  char **remove_columns;
-};
-
+// Represents an input option for the CLI.
+//
+// Has
+// - SHORT: a single character flag
+// - LONG: a verbose string flag
+// - ARG: a string containing the arguments required as printed by --help
+// - DESC: a description of what this does as printed by --help
 struct Flag {
   const char short_id;
   const char *long_id;
@@ -37,6 +19,7 @@ struct Flag {
   const char *desc;
 };
 
+// Different indices to access the corresponding Flag in the FLAGS array.
 enum CLI_FLAG_TYPE {
   NEW_FILE_NAME = 0,
   EXCLUDE_HEADERS,
@@ -46,6 +29,13 @@ enum CLI_FLAG_TYPE {
   INCLUDE_REMAINDERS,
   HELP
 };
+
+#define DEFAULT_FILE_PATH          NULL
+#define DEFAULT_NEW_FILE_NAME      "split"
+#define DEFAULT_EXCLUDE_HEADERS    0
+#define DEFAULT_LINE_COUNT         1
+#define DEFAULT_DELIMITER          ','
+#define DEFAULT_INCLUDE_REMAINDERS 0
 
 #define FLAG(s, l, a, d) \
   { s, l, a, d }
@@ -63,11 +53,7 @@ enum CLI_FLAG_TYPE {
       "number (default: \"split\")")
 
 #define FLAG_EXCLUDE_HEADERS \
-  FLAG(                      \
-      'e',                   \
-      "exclude-headers",     \
-      "",                    \
-      "Exclude headers in new files (default: false)")
+  FLAG('e', "exclude-headers", "", "Exclude headers in new files (default: false)")
 
 #define FLAG_LINE_COUNT \
   FLAG('l', "line-count", "<COUNT>", "Number of lines per file (default: 1)")
@@ -105,13 +91,8 @@ static struct Flag FLAGS[] = {FLAG_NEW_FILE_NAME,
                               FLAG_INCLUDE_REMAINDERS,
                               FLAG_HELP};
 
-// Function to assign default values to cfg fields.
-void initialise_config(struct Config *cfg);
+int parse_arg(struct Config *config, const int argc, const char **argv, size_t at);
 
-// Function to parse given command line arguments to cfg fields.
-void parse_config(struct Config *cfg, const int argc, const char **argv);
-
-// Prints helpful information about this program
-void print_help(void);
+size_t max_flag_length();
 
 #endif

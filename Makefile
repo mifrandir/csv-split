@@ -10,6 +10,7 @@ INSTALL_DIR = /usr/local/bin
 LIST = $(SRC_LIST:%.c=%)
 SRC_LIST = $(notdir $(wildcard $(SRC_DIR)/*.c))
 OBJ_LIST = $(addprefix $(BUILD_DIR)/,$(LIST:%=%.o))
+FILES_EXIST = ./scripts/files_exist.sh
 
 .PHONY: all clean $(PROG_NAME) compile install install-local uninstall uninstall-local
 
@@ -31,6 +32,11 @@ clean:
 	rm -rf $(BIN_DIR) $(BUILD_DIR)
 
 check:
+	# Checking for object files after compilation
+	$(FILES_EXIST) $(OBJ_LIST)
+	# Checking for binary after linking
+	$(FILES_EXIST) $(BIN_DIR)/$(PROG_NAME)
+
 
 install: $(PROG_NAME)
 	mkdir -p $(INSTALL_DIR)
@@ -45,3 +51,4 @@ install-local: $(PROG_NAME)
 
 uninstall-local:
 	rm -rf $(DESTDIR)/$(PROG_NAME)
+

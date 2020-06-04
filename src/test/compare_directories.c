@@ -1,10 +1,8 @@
-#include "compare_files.h"
-
-#include "../log.h"
+#include "compare_directories.h"
 
 int main(const int argc, const char **argv) {
   if (argc != 3) {
     ERR_LOG("Expected two arguments to compare.\n");
   }
-  return compare_files(argv[1], argv[2]);
+  return compare_directories(argv[1], argv[2]);
 }

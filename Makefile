@@ -41,7 +41,7 @@ check:
 	$(FILES_EXIST) $(BIN_DIR)/$(PROG_NAME)
 
 .PHONY: install
-install: $(PROG_NAME)
+install: build
 	mkdir -p $(INSTALL_DIR)
 	cp $(BIN_DIR)/$(PROG_NAME) $(INSTALL_DIR)/$(PROG_NAME)
 
@@ -61,13 +61,17 @@ uninstall-local:
 TEST_DIR=./src/test
 
 .PHONY: test
-test: test-build
-
+test: build test-build
+	# checking whether compare-files works
+	$(BIN_DIR)/compare-files $(BIN_DIR)/compare-files $(BIN_DIR)/compare-files
 .PHONY: test-build
-test-build: mkdir bin/compare-files test-compile
+test-build: mkdir comparisons test-compile
 
 .PHONY: test-compile
 test-compile:
 
-bin/compare-files: mkdir
-	$(CC) $(CFLAG) -o $@ $(TEST_DIR)/compare_files.c
+comparisons: mkdir
+	$(CC) -c $(CFLAG) -o build/compare_files.o $(TEST_DIR)/compare_files.c
+	$(CC) -c $(CFLAG) -o build/compare_directories.o $(TEST_DIR)/compare_directories.c
+	$(LD) build/compare_files.o -o bin/compare-files
+	$(LD) build/compare_directories.o -o bin/compare-dirs

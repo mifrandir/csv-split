@@ -48,6 +48,7 @@ static void print_option(struct Flag *f, size_t max) {
 // Prints useful information about the program as required by the --help flag.
 void print_help(void) {
   fprintf(HELP_OUT, "%s\n\n", TITLE);
+  fprintf(HELP_OUT, "VERSION: %s\n\n", CSV_SPLIT_VERSION);
   fprintf(HELP_OUT, "USAGE:\n\t%s\n\n", USAGE);
   fprintf(HELP_OUT, "OPTIONS:\n");
   size_t max = max_flag_length();

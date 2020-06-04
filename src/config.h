@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define CSV_SPLIT_VERSION "v0.0.1"
+
 struct Config {
   /* Strings */
   const char *file_path;

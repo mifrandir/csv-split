@@ -2,25 +2,24 @@ CC          = gcc
 LD          = gcc
 CFLAG       = -Wall
 PROG_NAME   = csv-split
-INC         = -I inc
 
 SRC_DIR     = ./src
 BUILD_DIR   = ./build
 BIN_DIR     = ./bin
-LIST = $(notdir $(wildcard $(SRC_DIR)/*.c))
-SRC_LIST = $(addprefix $(SRC_DIR)/,$(LIST))
-OBJ_LIST = $(addprefix $(BUILD_DIR)/,$(LIST:.c=.o))
+LIST = $(SRC_LIST:%.c=%)
+SRC_LIST = $(notdir $(wildcard $(SRC_DIR)/*.c))
+OBJ_LIST = $(addprefix $(BUILD_DIR)/,$(LIST:%=%.o))
 
 .PHONY: all clean $(PROG_NAME) compile
 
 all: $(PROG_NAME)
 
 compile: 
-	$(foreach f, $(LIST:%.c=%), $(CC) -c $(CFLAG) -o $(BUILD_DIR)/$(f).o $(SRC_DIR)/$(f).c;)
+	$(foreach f, $(LIST), $(CC) -c $(CFLAG) -o $(BUILD_DIR)/$(f).o $(SRC_DIR)/$(f).c;)
 
 mkdir:
-	mkdir $(BUILD_DIR)
-	mkdir $(BIN_DIR)
+	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BIN_DIR)
 
 $(PROG_NAME): mkdir compile
 	$(LD) $(OBJ_LIST) -o $(BIN_DIR)/$@

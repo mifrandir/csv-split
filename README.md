@@ -19,7 +19,7 @@ $ cd csv-split
 $ make
 ```
 
-You can move the resulting binary (`csv-split`) into your path (e.g. `$HOME/.local/bin`) for convenient use anywhere on your system.
+You can move the resulting binary (`bin/csv-split`) into your path (e.g. `$HOME/.local/bin`) for convenient use anywhere on your system.
 
 ## Usage
 

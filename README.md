@@ -1,6 +1,6 @@
-# csv-split
+# CSV Split
 
-A simple command line program that splits CSV files into smaller parts.
+A simple command line program that splits CSV (comma-separated values) files into smaller parts.
 
 **DISCLAIMER**: This is software has not been tested properly.
 

@@ -15,3 +15,17 @@ jobs:
       run: make build
     - name: make check
       run: make check
+  test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: configure
+      run: ./configure
+    - name: make build
+      run: make build
+    - name: make check
+      run: make check
+    - name: make test
+      run: make test

@@ -27,7 +27,7 @@ Install to `/usr/local/bin/` (superuser):
 # make install
 ```
 
-Install to local directory (e.g. `$HOME/.local/bin):
+Install to local directory (e.g. `$HOME/.local/bin`):
 
 ```
 $ make DESTDIR=$HOME/.local/bin install-local

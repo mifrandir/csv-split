@@ -64,9 +64,11 @@ uninstall-local:
 
 .PHONY: test
 test: test-clean build test-build
-	# checking whether compare-files works
+	# checking whether comparisons work
 	$(BIN_DIR)/compare-files $(BIN_DIR)/compare-files $(BIN_DIR)/compare-files
 	$(BIN_DIR)/compare-dirs $(BIN_DIR) $(BIN_DIR)
+	# preparing data directory
+	./scripts/init_test.sh
 	$(BIN_DIR)/test $(BIN_DIR)/$(PROG_NAME) $(DATA_DIR)/test $(TEMP_DIR)/test
 
 .PHONY: test-build

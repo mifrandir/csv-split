@@ -157,6 +157,7 @@ int main(const int argc, const char **argv) {
   }
   if (test_all()) {
     printf("One or more tests failed.\n");
+    return 1;
   }
   return 0;
 }

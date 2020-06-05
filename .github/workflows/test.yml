@@ -1,4 +1,4 @@
-name: C test
+name: Tests
 
 on: [push, pull_request]
 

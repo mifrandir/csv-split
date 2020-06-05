@@ -18,7 +18,7 @@ SRC_LIST = $(notdir $(wildcard $(SRC_DIR)/*.c))
 OBJ_LIST = $(addprefix $(BUILD_DIR)/,$(LIST:%=%.o))
 
 .PHONY: all
-all: $(PROG_NAME)
+all: build comparisons
 
 $(BUILD_DIR)/%.o:
 	$(CC) -c $(CFLAG) -o $@ $(SRC_DIR)/$(notdir $(@:%.o=%.c))
@@ -70,11 +70,10 @@ test: test-clean build test-build
 	$(BIN_DIR)/test $(BIN_DIR)/$(PROG_NAME) $(DATA_DIR)/test $(TEMP_DIR)/test
 
 .PHONY: test-build
-test-build: mkdir mkdir-test comparisons test-compile
+test-build: mkdir test-mkdir comparisons test-compile
 
-.PHONY: mkdir-test
-mkdir-test:
-	mkdir -p $(TEST_SRC_DIR)
+.PHONY: test-mkdir
+test-mkdir:
 	mkdir -p $(TEST_BUILD_DIR)
 
 .PHONY: test-compile
@@ -87,7 +86,7 @@ test-clean:
 	-rm -rf $(TEMP_DIR) $(TEST_BUILD_DIR)
 
 .PHONY: comparisons
-comparisons: mkdir
+comparisons: mkdir test-mkdir
 	$(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/compare_files.o $(TEST_SRC_DIR)/compare_files.c
 	$(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/compare_directories.o $(TEST_SRC_DIR)/compare_directories.c
 	$(LD) -o $(BIN_DIR)/compare-files $(TEST_BUILD_DIR)/compare_files.o

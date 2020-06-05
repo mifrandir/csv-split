@@ -6,9 +6,13 @@ PROG_NAME   = csv-split
 FILES_EXIST = ./scripts/files_exist.sh
 
 SRC_DIR     = ./src
+TEST_SRC_DIR=./src/test
 BUILD_DIR   = ./build
+TEST_BUILD_DIR = $(BUILD_DIR)/test
 BIN_DIR     = ./bin
 INSTALL_DIR = /usr/local/bin
+DATA_DIR = ./data
+TEMP_DIR = ./temp
 LIST = $(SRC_LIST:%.c=%)
 SRC_LIST = $(notdir $(wildcard $(SRC_DIR)/*.c))
 OBJ_LIST = $(addprefix $(BUILD_DIR)/,$(LIST:%=%.o))
@@ -58,20 +62,30 @@ install-local: $(PROG_NAME)
 uninstall-local:
 	rm -rf $(DESTDIR)/$(PROG_NAME)
 
-TEST_DIR=./src/test
+
 
 .PHONY: test
 test: build test-build
 	# checking whether compare-files works
 	$(BIN_DIR)/compare-files $(BIN_DIR)/compare-files $(BIN_DIR)/compare-files
+	$(BIN_DIR)/compare-dirs $(BIN_DIR) $(BIN_DIR)
+	$(BIN_DIR)/test $(BIN_DIR)/$(PROG_NAME) $(DATA_DIR) $(TEMP_DIR)
+
 .PHONY: test-build
-test-build: mkdir comparisons test-compile
+test-build: mkdir mkdir-test comparisons test-compile
+
+.PHONY: mkdir-test
+mkdir-test:
+	mkdir -p $(TEST_SRC_DIR)
+	mkdir -p $(TEST_BUILD_DIR)
 
 .PHONY: test-compile
 test-compile:
+	$(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/test.o $(TEST_SRC_DIR)/test.c
+	$(LD) -o $(BIN_DIR)/test $(TEST_BUILD_DIR)/test.o
 
 comparisons: mkdir
-	$(CC) -c $(CFLAG) -o build/compare_files.o $(TEST_DIR)/compare_files.c
-	$(CC) -c $(CFLAG) -o build/compare_directories.o $(TEST_DIR)/compare_directories.c
-	$(LD) build/compare_files.o -o bin/compare-files
-	$(LD) build/compare_directories.o -o bin/compare-dirs
+	$(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/compare_files.o $(TEST_SRC_DIR)/compare_files.c
+	$(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/compare_directories.o $(TEST_SRC_DIR)/compare_directories.c
+	$(LD) -o $(BIN_DIR)/compare-files $(TEST_BUILD_DIR)/compare_files.o
+	$(LD) -o $(BIN_DIR)/compare-dirs $(TEST_BUILD_DIR)/compare_directories.o

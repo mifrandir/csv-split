@@ -36,8 +36,8 @@ build: mkdir compile
 	$(LD) $(OBJ_LIST) -o $(BIN_DIR)/$(PROG_NAME)
 
 .PHONY: clean
-clean:
-	rm -rf $(BIN_DIR) $(BUILD_DIR)
+clean: test-clean
+	-rm -rf $(BIN_DIR) $(BUILD_DIR)
 
 .PHONY: check
 check:
@@ -62,14 +62,12 @@ install-local: $(PROG_NAME)
 uninstall-local:
 	rm -rf $(DESTDIR)/$(PROG_NAME)
 
-
-
 .PHONY: test
-test: build test-build
+test: test-clean build test-build
 	# checking whether compare-files works
 	$(BIN_DIR)/compare-files $(BIN_DIR)/compare-files $(BIN_DIR)/compare-files
 	$(BIN_DIR)/compare-dirs $(BIN_DIR) $(BIN_DIR)
-	$(BIN_DIR)/test $(BIN_DIR)/$(PROG_NAME) $(DATA_DIR) $(TEMP_DIR)
+	$(BIN_DIR)/test $(BIN_DIR)/$(PROG_NAME) $(DATA_DIR)/test $(TEMP_DIR)/test
 
 .PHONY: test-build
 test-build: mkdir mkdir-test comparisons test-compile
@@ -84,6 +82,11 @@ test-compile:
 	$(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/test.o $(TEST_SRC_DIR)/test.c
 	$(LD) -o $(BIN_DIR)/test $(TEST_BUILD_DIR)/test.o
 
+.PHONY: test-clean
+test-clean:
+	-rm -rf $(TEMP_DIR) $(TEST_BUILD_DIR)
+
+.PHONY: comparisons
 comparisons: mkdir
 	$(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/compare_files.o $(TEST_SRC_DIR)/compare_files.c
 	$(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/compare_directories.o $(TEST_SRC_DIR)/compare_directories.c

@@ -1,6 +1,5 @@
 # CSV Split
-
-![C/C++ CI](https://github.com/MiltFra/csv-split/workflows/C/C++%20CI/badge.svg?branch=master)
+![C/C++ CI](https://github.com/MiltFra/csv-split/workflows/C/C++%20CI/badge.svg)
 
 A simple command line program that splits CSV (comma-separated values) files into smaller parts.
 

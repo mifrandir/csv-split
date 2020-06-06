@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <stddef.h>
 
 #include "../log.h"
 #include "compare_files.h"
@@ -13,7 +14,7 @@
 #define MAX_FILE_COUNT 1024
 #define DT_FILE        8
 
-static ssize_t read_file_names(const char *path, char **buffer) {
+ssize_t read_file_names(const char *path, char **buffer) {
   DIR *dir = opendir(path);
   if (dir == NULL) {
     ERR_LOG("Failure opening directory. (%s)\n", path);
@@ -79,7 +80,7 @@ int compare_directories(const char *dir_a, const char *dir_b) {
   }
   LOG("Read %lu files from %s\n", num_files_b, dir_b);
   if (num_files_a != num_files_b) {
-    printf(
+    ERR_LOG(
         "Directories have different number of files. (a: %lu, b: %lu)\n",
         num_files_a,
         num_files_b);

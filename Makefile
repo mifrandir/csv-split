@@ -5,17 +5,20 @@ PROG_NAME   = csv-split
 
 FILES_EXIST = ./scripts/files_exist.sh
 
-SRC_DIR     = ./src
-TEST_SRC_DIR=./src/test
-BUILD_DIR   = ./build
+BIN_DIR        = ./bin
+SRC_DIR        = ./src
+BUILD_DIR      = ./build
+LIST           = $(SRC_LIST:%.c=%)
+SRC_LIST       = $(notdir $(wildcard $(SRC_DIR)/*.c))
+OBJ_LIST       = $(addprefix $(BUILD_DIR)/,$(LIST:%=%.o))
+TEST_SRC_DIR   =./src/test
 TEST_BUILD_DIR = $(BUILD_DIR)/test
-BIN_DIR     = ./bin
-INSTALL_DIR = /usr/local/bin
-DATA_DIR = ./data
-TEMP_DIR = ./temp
-LIST = $(SRC_LIST:%.c=%)
-SRC_LIST = $(notdir $(wildcard $(SRC_DIR)/*.c))
-OBJ_LIST = $(addprefix $(BUILD_DIR)/,$(LIST:%=%.o))
+TEST_LIST      = $(TEST_SRC_LIST:%.c=%)
+TEST_SRC_LIST  = $(notdir $(wildcard $(TEST_SRC_DIR)/*test*.c))
+TEST_OBJ_LIST  = $(addprefix $(TEST_BUILD_DIR)/,$(TEST_LIST:%=%.o))
+INSTALL_DIR    = /usr/local/bin
+DATA_DIR       = ./data
+TEMP_DIR       = ./temp
 
 .PHONY: all
 all: build comparisons
@@ -78,10 +81,12 @@ test-build: mkdir test-mkdir comparisons test-compile
 test-mkdir:
 	mkdir -p $(TEST_BUILD_DIR)
 
+$(TEST_BUILD_DIR)/%.o:
+	$(CC) -c $(CFLAG) -o $@ $(TEST_SRC_DIR)/$(notdir $(@:%.o=%.c))
+
 .PHONY: test-compile
-test-compile:
-	$(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/test.o $(TEST_SRC_DIR)/test.c
-	$(LD) -o $(BIN_DIR)/test $(TEST_BUILD_DIR)/test.o
+test-compile: $(TEST_OBJ_LIST)
+	$(LD) -o $(BIN_DIR)/test $(TEST_OBJ_LIST)
 
 .PHONY: test-clean
 test-clean:

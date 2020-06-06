@@ -29,7 +29,9 @@ rows of the original file in the range `[INDEX+2,INDEX+2+COUNT)` where line `1` 
 
 ## Installation
 
-Clone the repository and change into directory:
+If you are using Arch Linux, you can use the [AUR package](https://aur.archlinux.org/packages/csv-split/).
+
+Otherwise, clone the repository and change into directory:
 
 ```
 $ git clone https://github.com/miltfra/csv-split

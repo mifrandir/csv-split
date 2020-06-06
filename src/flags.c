@@ -160,9 +160,9 @@ static size_t flag_length(struct Flag *f) {
 size_t max_flag_length() {
   size_t max = flag_length(FLAGS);
   size_t cur;
-  for (struct Flag *p = FLAGS; p < FLAGS + FLAG_COUNT; p++) {
+  for (struct Flag *p = FLAGS + 1; p != FLAGS + FLAG_COUNT; p++) {
     if ((cur = flag_length(p)) > max) {
-      cur = max;
+      max = cur;
     }
   }
   return max;

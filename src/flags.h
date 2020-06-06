@@ -65,14 +65,12 @@ enum CLI_FLAG_TYPE {
       "<DELIMITER>",   \
       "Character used for column separation (default: ',')")
 
-#define FLAG_REMOVE_COLUMNS                                                            \
-  FLAG(                                                                                \
-      'r',                                                                             \
-      "remove-columns",                                                                \
-      "<COL1>[<DELIM><COL2><DELIM>...]",                                               \
-      "Specify column names to be removed during processing in specified "             \
-      "file. This is parsed in the very end, so the delimiter should match the final " \
-      "setting.")
+#define FLAG_REMOVE_COLUMNS              \
+  FLAG(                                  \
+      'r',                               \
+      "remove-columns",                  \
+      "<COL1>[<DELIM><COL2><DELIM>...]", \
+      "Specify column names to be removed during processing.")
 
 #define FLAG_INCLUDE_REMAINDERS \
   FLAG(                         \

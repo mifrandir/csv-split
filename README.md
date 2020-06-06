@@ -2,7 +2,7 @@
 ![Build](https://github.com/MiltFra/csv-split/workflows/Build/badge.svg)
 ![Tests](https://github.com/MiltFra/csv-split/workflows/Tests/badge.svg)
 
-A simple command line program that splits CSV (comma-separated values) files into smaller parts.
+A simple command line program that splits [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) files into smaller parts.
 
 ## Usage
 

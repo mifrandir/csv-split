@@ -22,10 +22,10 @@ void set_temp_dir_path(char *p) {
   temp_dir_path = p;
 }
 
-static size_t extend_directory(const char *dir, const char *sub, char *buffer) {
-  sprintf(buffer, "%s/%s", dir, sub);
-  return strlen(dir) + strlen(sub) + 1;
-}
+//static size_t extend_directory(const char *dir, const char *sub, char *buffer) {
+//  sprintf(buffer, "%s/%s", dir, sub);
+//  return strlen(dir) + strlen(sub) + 1;
+//}
 
 int make_directory(const char *dir) {
   char *command = malloc((strlen(dir) + 10));

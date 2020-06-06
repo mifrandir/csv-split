@@ -55,12 +55,48 @@ static int test_fewer_lines_than_split() {
   return run_test(&test);
 }
 
+// Tests that only one identical file is generated if the split size is bigger than the
+// number of liens and remainders are included.
+static int test_fewer_lines_than_split_with_remainders() {
+  static struct Test test = {"fewer_lines_than_split_with_remainders", "-l 100 -i"};
+  return run_test(&test);
+}
+
+// Tests that basic splitting with -l > 1 works.
+static int test_basic_multiline_split() {
+  static struct Test test = {"basic_multiline_split", "-l 2"};
+  return run_test(&test);
+}
+
+// Tests that omitting the header lines works as intended.
+static int test_basic_multiline_split_no_headers() {
+  static struct Test test = {"basic_multiline_split_no_headers", "-l 2 -e"};
+  return run_test(&test);
+}
+
+static int test_long_flags() {
+  static struct Test test = {
+      "long_flags",
+      "--exclude-headers --line-count 2 --delimiter , --include-remainders"};
+  return run_test(&test);
+}
+
+static int test_multiflags() {
+  static struct Test test = {"multiflags", "-eil 2 -d ,"};
+  return run_test(&test);
+}
+
 int test_all() {
   int err = 0;
   err |= test_get_ref_path();
   err |= test_get_test_path();
   err |= test_default();
   err |= test_fewer_lines_than_split();
+  err |= test_fewer_lines_than_split_with_remainders();
+  err |= test_basic_multiline_split();
+  err |= test_basic_multiline_split_no_headers();
+  err |= test_long_flags();
+  err |= test_multiflags();
   return err;
 }
 

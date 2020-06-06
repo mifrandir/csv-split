@@ -4,7 +4,28 @@
 
 A simple command line program that splits CSV (comma-separated values) files into smaller parts.
 
-**DISCLAIMER**: This is software has not been tested properly.
+## Usage
+
+```
+$ csv-split -h
+Split CSV files by lines
+
+USAGE:
+        csv-split [OPTIONS] <FILE_TO_SPLIT>
+
+OPTIONS:
+        -n, --new-file-name <NEW_FILE>          Name of the new files. This will be appended with an incremented number (default: "split")
+        -e, --exclude-headers                   Exclude headers in new files (default: false)
+        -l, --line-count <COUNT>                Number of lines per file (default: 1)
+        -d, --delimiter <DELIMITER>             Character used for column separation (default: ',')
+        -r, --remove-columns <FILE>             Specify column names to be removed during processing in specified file.
+        -i, --include-remainders                Include remainder rows in the split files (default: false).
+        -h, --help                              Display this message
+```
+
+Simply run the executable with the desired inputs and flags.
+Then it will create a set of files of the form `<NEW_FILE><INDEX>.csv` that contain the 
+rows of the original file in the range `[INDEX+2,INDEX+2+COUNT)` where line `1` is the input header. 
 
 ## Installation
 
@@ -18,7 +39,7 @@ $ cd csv-split
 Create binary in `bin/`:
 
 ```
-$ make build
+$ make
 ```
 
 Install to `/usr/local/bin/` (superuser):
@@ -42,24 +63,23 @@ $ make clean
 $ make build
 ```
 
-## Usage
+## Testing 
+
+You can verify that everything compiled successfully by running
 
 ```
-$ csv-split -h
-Split CSV files by lines
+$ make check
+``` 
 
-USAGE:
-        csv-split [OPTIONS] <FILE_TO_SPLIT>
+after `make`.
 
-OPTIONS:
-        -n, --new-file-name <NEW_FILE>          Name of the new files. This will be appended with an incremented number (default: "split")
-        -e, --exclude-headers                   Exclude headers in new files (default: false)
-        -l, --line-count <COUNT>                Number of lines per file (default: 1)
-        -d, --delimiter <DELIMITER>             Character used for column separation (default: ',')
-        -r, --remove-columns <FILE>             Specify column names to be removed during processing in specified file.
-        -i, --include-remainders                Include remainder rows in the split files (default: false).
-        -h, --help                              Display this message
+If you want to verify that the software behaves as intended, run
+
 ```
+$ make test
+```
+
+and check the output. If you find a bug, please file a bug report on [GitHub](https://github.com/miltfra/csv-split).
 
 ## About 
 

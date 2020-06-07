@@ -90,7 +90,7 @@ static struct Flag FLAGS[] = {FLAG_NEW_FILE_NAME,
                               FLAG_INCLUDE_REMAINDERS,
                               FLAG_HELP};
 
-int parse_arg(struct Config *config, const int argc, const char **argv, size_t at);
+int parse_arg(struct Config *config, const int argc, char **argv, size_t at);
 
 size_t max_flag_length();
 

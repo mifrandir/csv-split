@@ -54,7 +54,7 @@ void process_config(struct Config *config) {
 }
 
 // Parses the given command line arguments into the given config struct.
-void parse_config(struct Config *cfg, const int argc, const char **argv) {
+void parse_config(struct Config *cfg, const int argc, char **argv) {
   LOG("Parsing config.\n");
   for (size_t i = 1; i < argc;) {
     i = parse_arg(cfg, argc, argv, i);

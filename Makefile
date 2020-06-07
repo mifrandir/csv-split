@@ -20,8 +20,14 @@ INSTALL_DIR    = /usr/local/bin
 DATA_DIR       = ./data
 TEMP_DIR       = ./temp
 
+.PHONY: version
+version:
+	# make version
+	@$(CC) --version
+	@sh -c "if [ $(CC) != $(LD) ]; then $(LD) --version; fi"
+
 .PHONY: all
-all: build comparisons
+all: version build comparisons
 
 $(BUILD_DIR)/%.o:
 	$(CC) -c $(CFLAG) -o $@ $(SRC_DIR)/$(notdir $(@:%.o=%.c))
@@ -74,7 +80,7 @@ uninstall-local:
 	rm -rf $(DESTDIR)/$(PROG_NAME)
 
 .PHONY: test
-test: clean build check test-build
+test: version clean build check test-build
 	# make test
 	# checking whether comparisons work
 	$(BIN_DIR)/compare-files $(BIN_DIR)/compare-files $(BIN_DIR)/compare-files

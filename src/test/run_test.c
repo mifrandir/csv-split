@@ -22,7 +22,7 @@ void set_temp_dir_path(char *p) {
   temp_dir_path = p;
 }
 
-//static size_t extend_directory(const char *dir, const char *sub, char *buffer) {
+// static size_t extend_directory(const char *dir, const char *sub, char *buffer) {
 //  sprintf(buffer, "%s/%s", dir, sub);
 //  return strlen(dir) + strlen(sub) + 1;
 //}
@@ -73,9 +73,13 @@ int run_test(struct Test *test) {
       test->name,
       test->flags);
   LOG("Running command: %s\n", test_command);
-  if (system(test_command) == -1) {
+  int err;
+  if ((err = system(test_command))) {
     ERR_LOG(
-        "Could not run command. Command: %s; Error: %s\n", test_command, strerror(errno));
+        "Could not run command. Command: %s; Error Code: %d; Error Message:\n%s\n",
+        test_command,
+        err,
+        strerror(errno));
     printf("FAILED\n");
     return 1;
   }

@@ -1,6 +1,7 @@
 #include "run_test.h"
 
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -73,13 +74,12 @@ int run_test(struct Test *test) {
       test->name,
       test->flags);
   LOG("Running command: %s\n", test_command);
+  FILE *process =
+      popen(test_command, "w");   // We're opening in write mode so that processes stdout
+                                  // is automatically written to our stdout
   int err;
-  if ((err = system(test_command))) {
-    ERR_LOG(
-        "Could not run command. Command: %s; Error Code: %d; Error Message:\n%s\n",
-        test_command,
-        err,
-        strerror(errno));
+  if ((err = pclose(process))) {
+    ERR_LOG("Could not run command. Command: %s; Error Code: %d\n", test_command, err);
     printf("FAILED\n");
     return 1;
   }

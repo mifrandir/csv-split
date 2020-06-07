@@ -72,7 +72,7 @@ test: test-clean build test-build
 	$(BIN_DIR)/compare-dirs $(BIN_DIR) $(BIN_DIR)
 	# preparing data directory
 	./scripts/init_test.sh
-	$(BIN_DIR)/test $(BIN_DIR)/$(PROG_NAME) $(DATA_DIR)/test $(TEMP_DIR)/test
+	$(BIN_DIR)/tests $(BIN_DIR)/$(PROG_NAME) $(DATA_DIR)/test $(TEMP_DIR)/test
 
 .PHONY: test-build
 test-build: mkdir test-mkdir comparisons test-compile
@@ -86,7 +86,7 @@ $(TEST_BUILD_DIR)/%.o:
 
 .PHONY: test-compile
 test-compile: $(TEST_OBJ_LIST)
-	$(LD) -o $(BIN_DIR)/test $(TEST_OBJ_LIST)
+	$(LD) -o $(BIN_DIR)/tests $(TEST_OBJ_LIST)
 
 .PHONY: test-clean
 test-clean:

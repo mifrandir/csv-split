@@ -31,8 +31,12 @@ static char is_natural(const char *arg) {
 
 // Given a path to a file, the columns the user wants to exclude are parsed and
 // saved in the config struct.
-static int parse_remove_columns(struct Config *cfg, const char *file) {
-  ERR_LOG("Removing columns has not yet been implemented.\n");
+static int parse_remove_columns(struct Config *cfg, const char *arg) {
+  if (cfg->remove_columns_buffer != NULL) {
+    ERR_LOG("Found two different values for --remove-columns flag.\n");
+    return 1;
+  }
+  cfg->remove_columns_buffer = arg;
   return 0;
 }
 
@@ -86,7 +90,7 @@ static size_t parse_flag_by_index(
         exit(PARSE_ERR);
       }
       arg = argv[at + 1];
-      if (!parse_remove_columns(cfg, arg)) {
+      if (parse_remove_columns(cfg, arg)) {
         ERR_LOG("Failed to parse columns to exclude. (file: %s)\n", arg);
         exit(PARSE_ERR);
       }

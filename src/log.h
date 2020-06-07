@@ -1,7 +1,8 @@
 #ifndef LOG_H
 #define LOG_H
-
 #include <stdio.h>
+
+#include "debug.h"
 
 #define ARG_ERR           -1
 #define PARSE_ERR         -2

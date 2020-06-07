@@ -31,26 +31,29 @@ rows of the original file in the range `[INDEX+2,INDEX+2+COUNT)` where line `1` 
 
 If you are using Arch Linux, you can use the [AUR package](https://aur.archlinux.org/packages/csv-split/).
 
-Otherwise, clone the repository and change into directory:
+Otherwise, it is recommended to use the latest [release](https://github.com/MiltFra/csv-split/releases).
+You can simply download the binary and run it or use the archive and extract it and then follow the other instructions.
+
+If you are absolutely sure you want the newest (yet unstable) version, you can also clone the repository and change into directory:
 
 ```
 $ git clone https://github.com/miltfra/csv-split
 $ cd csv-split
 ```
 
-Create binary in `bin/`:
+To create the binary in `bin/`:
 
 ```
 $ make
 ```
 
-Install to `/usr/local/bin/` (superuser):
+To install the binary to `/usr/local/bin/` (requires root priviliges):
 
 ```
 # make install
 ```
 
-Install to local directory (e.g. `$HOME/.local/bin`):
+To install the binary to local directory (e.g. `$HOME/.local/bin`):
 
 ```
 $ make DESTDIR=$HOME/.local/bin install-local

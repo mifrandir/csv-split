@@ -17,3 +17,5 @@ jobs:
       run: make check
     - name: make test
       run: make test
+    - name: list files
+      run: find .

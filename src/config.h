@@ -15,6 +15,7 @@ struct Config {
   char include_remainders;
   /* Other values */
   char delimiter;
+  char *remove_columns_buffer;
   size_t line_count;
   size_t remove_columns_l;
   char **remove_columns;
@@ -24,7 +25,9 @@ struct Config {
 void initialise_config(struct Config *cfg);
 
 // Function to parse given command line arguments to cfg fields.
-void parse_config(struct Config *cfg, const int argc, const char **argv);
+void parse_config(struct Config *cfg, const int argc, char **argv);
+
+void process_config(struct Config *config);
 
 void print_help(void);
 

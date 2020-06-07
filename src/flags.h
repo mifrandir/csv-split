@@ -65,13 +65,12 @@ enum CLI_FLAG_TYPE {
       "<DELIMITER>",   \
       "Character used for column separation (default: ',')")
 
-#define FLAG_REMOVE_COLUMNS                                                \
-  FLAG(                                                                    \
-      'r',                                                                 \
-      "remove-columns",                                                    \
-      "<FILE>",                                                            \
-      "Specify column names to be removed during processing in specified " \
-      "file.")
+#define FLAG_REMOVE_COLUMNS              \
+  FLAG(                                  \
+      'r',                               \
+      "remove-columns",                  \
+      "<COL1>[<DELIM><COL2><DELIM>...]", \
+      "Specify column names to be removed during processing.")
 
 #define FLAG_INCLUDE_REMAINDERS \
   FLAG(                         \
@@ -91,7 +90,7 @@ static struct Flag FLAGS[] = {FLAG_NEW_FILE_NAME,
                               FLAG_INCLUDE_REMAINDERS,
                               FLAG_HELP};
 
-int parse_arg(struct Config *config, const int argc, const char **argv, size_t at);
+int parse_arg(struct Config *config, const int argc, char **argv, size_t at);
 
 size_t max_flag_length();
 

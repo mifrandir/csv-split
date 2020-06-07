@@ -3,7 +3,7 @@ name: Tests
 on: [push, pull_request]
 
 jobs:
-  build:
+  test:
 
     runs-on: ubuntu-latest
 
@@ -11,9 +11,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: configure
       run: ./configure
-    - name: make
-      run: make
-    - name: make check
-      run: make check
     - name: make test
       run: make test
+    - name: list files
+      run: find .

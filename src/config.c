@@ -7,18 +7,54 @@
 
 // Fills the fields of a given Config struct with default values.
 void initialise_config(struct Config *cfg) {
-  cfg->file_path          = DEFAULT_FILE_PATH;
-  cfg->new_file_name      = DEFAULT_NEW_FILE_NAME;
-  cfg->exclude_headers    = DEFAULT_EXCLUDE_HEADERS;
-  cfg->include_remainders = DEFAULT_INCLUDE_REMAINDERS;
-  cfg->delimiter          = DEFAULT_DELIMITER;
-  cfg->line_count         = DEFAULT_LINE_COUNT;
-  cfg->remove_columns_l   = 0;
-  cfg->remove_columns     = NULL;
+  cfg->file_path             = DEFAULT_FILE_PATH;
+  cfg->new_file_name         = DEFAULT_NEW_FILE_NAME;
+  cfg->exclude_headers       = DEFAULT_EXCLUDE_HEADERS;
+  cfg->include_remainders    = DEFAULT_INCLUDE_REMAINDERS;
+  cfg->delimiter             = DEFAULT_DELIMITER;
+  cfg->line_count            = DEFAULT_LINE_COUNT;
+  cfg->remove_columns_l      = 0;
+  cfg->remove_columns        = NULL;
+  cfg->remove_columns_buffer = NULL;
+}
+
+size_t count_char(const char *str, char c) {
+  size_t count = 0;
+  for (const char *p = str; *p; p++) {
+    if (*p == c) {
+      count++;
+    }
+  }
+  return count;
+}
+
+void process_config(struct Config *config) {
+  // Big `if` in case we need to add more processing.
+  if (config->remove_columns_buffer != NULL) {
+    config->remove_columns_l =
+        count_char(config->remove_columns_buffer, config->delimiter) + 1;
+    LOG("Found %lu columns to be removed.\n", config->remove_columns_l);
+    config->remove_columns = malloc(config->remove_columns_l * sizeof(char *));
+    char *begin, *end, *header;
+    begin = end = config->remove_columns_buffer;
+    for (size_t i = 0; i < config->remove_columns_l; i++) {
+      while (*end != config->delimiter) {
+        end++;
+      }
+      header = malloc((end - begin + 1) * sizeof(char));
+      size_t j;
+      for (j = 0; j < end - begin; j++) {
+        header[j] = begin[j];
+      }
+      header[j]                 = '\0';
+      config->remove_columns[i] = header;
+      begin                     = ++end;
+    }
+  }
 }
 
 // Parses the given command line arguments into the given config struct.
-void parse_config(struct Config *cfg, const int argc, const char **argv) {
+void parse_config(struct Config *cfg, const int argc, char **argv) {
   LOG("Parsing config.\n");
   for (size_t i = 1; i < argc;) {
     i = parse_arg(cfg, argc, argv, i);

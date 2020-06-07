@@ -86,6 +86,11 @@ static int test_multiflags() {
   return run_test(&test);
 }
 
+static int test_remove_single_column() {
+  static struct Test test = {"remove_single_column", "-r BIN"};
+  return run_test(&test);
+}
+
 int test_all() {
   int err = 0;
   err |= test_get_ref_path();
@@ -97,6 +102,7 @@ int test_all() {
   err |= test_basic_multiline_split_no_headers();
   err |= test_long_flags();
   err |= test_multiflags();
+  err |= test_remove_single_column();
   return err;
 }
 

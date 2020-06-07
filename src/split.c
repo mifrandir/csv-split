@@ -12,7 +12,8 @@
 // number of replacements.
 static size_t strsub(char *str, const char old, const char new) {
   size_t count = 0;
-  for (char *p = str; *p != '\0'; p++) {
+  char *p;
+  for (p = str; *p != '\0'; p++) {
     if (*p == old) {
       *p = new;
       count++;
@@ -25,7 +26,7 @@ static size_t strsub(char *str, const char old, const char new) {
 // and returns the new length of the string. Even though the result of strlen
 // changes, no memory is allocated or deallocated.
 static size_t remove_linebreak(char *str, size_t len) {
-  for (char *p = str + len; p >= str; p--) {
+  for (char *p = str + len; p != str; p--) {
     if (*p == '\n') {
       *p = '\0';
       return p - str;
@@ -45,9 +46,9 @@ static void load_headers(
     exit(EXIT_FAILURE);
   }
   // Reading the line
-  size_t line_len = 0;
-  char *line      = NULL;
-  getline(&line, &line_len, f);
+  size_t line_buffer_len = 0;
+  char *line             = NULL;
+  ssize_t line_len       = getline(&line, &line_buffer_len, f);
   if (!line) {
     exit(EXIT_FAILURE);
   }
@@ -80,7 +81,7 @@ static size_t find_relevant_columns(
     char **headers,
     char *include_column) {
   size_t output_length = input_length;
-  for (size_t i = 0; i < output_length; i++) {
+  for (size_t i = 0; i < input_length; i++) {
     include_column[i] = 1;
     for (size_t j = 0; j < config->remove_columns_l; j++) {
       if (!strcmp(headers[i], config->remove_columns[j])) {
@@ -97,22 +98,22 @@ static size_t find_relevant_columns(
 // containing only those columns that are not to be excluded by the config.
 static void filter_line(
     const struct Config *config,
-    const size_t input_length,          // number of columns in input file
-    char **input,                       // string values for each input column
-    const char *include_column,         // whether the ith column should be written to
-    const size_t ouput_length,          // number of columns in output file
-                                        // output
-    char **output) {                    // buffer for output values
-  if (ouput_length == input_length) {   // If there's nothing to filter, we can
-                                        // just copy the enitre array.
+    const size_t input_length,           // number of columns in input file
+    char **input,                        // string values for each input column
+    const char *include_column,          // whether the ith column should be written to
+    const size_t output_length,          // number of columns in output file
+                                         // output
+    char **output) {                     // buffer for output values
+  if (output_length == input_length) {   // If there's nothing to filter, we can
+                                         // just copy the enitre array.
     memcpy(output, input, input_length * sizeof(char *));
     LOG("Skipped filtering because input and output sizes are identical.\n");
     return;
   }
   size_t i, j;
-  for (i = j = 0; j < ouput_length; j++, i++) {
-    while (!include_column[i]) {   // Skipping all the columns that have been
-                                   // excluded
+  for (i = j = 0; j < output_length; j++, i++) {
+    while (i < input_length && !include_column[i]) {   // Skipping all the columns that
+                                                       // have been excluded
       i++;
     }
     output[j] = input[i];
@@ -137,6 +138,7 @@ static void load_values(
     char *line,   // A line buffer containing comma separated values WITHOUT the
                   // linebreak
     const size_t input_column_count,
+    const size_t output_column_count,
     char **values) {
   size_t actual_column_count;
   remove_linebreak(line, strlen(line));
@@ -151,19 +153,11 @@ static void load_values(
   }
   char *begin, *end, **next_value;
   next_value = values;
-  for (begin = line; next_value - values < input_column_count; begin++) {
+  for (begin = line; next_value - values < output_column_count; begin++) {
     for (end = begin; *end != WORKING_DELIM; end++)
       ;
     *(next_value++) = begin;
     begin           = end;
-  }
-  for (size_t i = 0; i < input_column_count; i++) {
-    char *p = values[i];
-    while (*p != '\0') {
-      if (*(p++) == '\n') {
-        LOG("WARNING: Found newline in value\n");
-      }
-    }
   }
   LOG("Wrote %lu values\n", next_value - values);
 }
@@ -211,16 +205,17 @@ static void process_batch(
     char **headers,
     struct Batch *output) {   // Buffer that holds all the necessary information
                               // for the current set of lines.
-  char **line;
-  size_t *len;
+  LOG("Processing batch.\n");
+  char *line;
+  size_t len;
   size_t i;
   ssize_t read;
   char *value_buffer[output->column_count];
   sprintf(output->file_name, "%s%lu.csv", config->new_file_name, file_count++);
   for (i = 0; i < config->line_count; i++) {
-    line = &output->lines[i];
-    len  = &output->line_lengths[i];
-    read = getline(line, len, file);
+    line = (output->lines)[i];
+    len  = (output->line_lengths)[i];
+    read = getline(&line, &len, file);
     if (read == -1) {
       if (config->include_remainders) {
         LOG("Writing remainders\n");
@@ -229,7 +224,7 @@ static void process_batch(
       }
       return;
     }
-    load_values(config, *line, input_column_count, value_buffer);
+    load_values(config, line, input_column_count, output->column_count, value_buffer);
     filter_line(
         config,
         input_column_count,
@@ -251,15 +246,17 @@ static void initialise_batch(
   if (batch->lines == NULL) {
     // If the buffers have not yet been initialised, we allocate the necessary
     // memory.
-    batch->lines        = malloc(max_lines * sizeof(char *));
+    batch->lines = malloc(max_lines * sizeof(char *));
+    LOG("Allocating values\n");
     batch->values       = malloc(max_lines * sizeof(char **));
     batch->line_lengths = malloc(max_lines * sizeof(size_t));
     batch->file_name    = malloc(strlen(config->new_file_name) + FILE_NAME_SUFFIX_BUFFER);
     for (char ***p = batch->values; p - batch->values < max_lines; p++) {
+      LOG("Allocating sub_values\n");
       *p = malloc(cols * sizeof(char *));
     }
-    for (size_t *p = batch->line_lengths; p - batch->line_lengths < max_lines; p++) {
-      *p = 0;
+    for (size_t *q = batch->line_lengths; q - batch->line_lengths < max_lines; q++) {
+      *q = 0;
     }
   }
   batch->line_count   = 0;
@@ -283,6 +280,7 @@ void split_csv(const struct Config *cfg) {
   char include_column[input_length];
   size_t output_length =
       find_relevant_columns(cfg, input_length, input_headers, include_column);
+  LOG("input_length=%lu, output_length=%lu\n", input_length, output_length);
   char *output_headers[output_length];
   filter_line(
       cfg, input_length, input_headers, include_column, output_length, output_headers);

@@ -31,8 +31,12 @@ static char is_natural(const char *arg) {
 
 // Given a path to a file, the columns the user wants to exclude are parsed and
 // saved in the config struct.
-static int parse_remove_columns(struct Config *cfg, const char *file) {
-  ERR_LOG("Removing columns has not yet been implemented.\n");
+static int parse_remove_columns(struct Config *cfg, char *arg) {
+  if (cfg->remove_columns_buffer != NULL) {
+    ERR_LOG("Found two different values for --remove-columns flag.\n");
+    return 1;
+  }
+  cfg->remove_columns_buffer = arg;
   return 0;
 }
 
@@ -44,8 +48,8 @@ static int parse_remove_columns(struct Config *cfg, const char *file) {
 //
 // Exits if a PARSE_ERR is encountered.
 static size_t parse_flag_by_index(
-    struct Config *cfg, const int argc, const char **argv, size_t at, size_t flag) {
-  const char *arg;
+    struct Config *cfg, const int argc, char **argv, size_t at, size_t flag) {
+  char *arg;
   switch (flag) {
     case NEW_FILE_NAME:
       if (at + 1 == argc) {   // Any string will be treated as a file name, as
@@ -86,7 +90,7 @@ static size_t parse_flag_by_index(
         exit(PARSE_ERR);
       }
       arg = argv[at + 1];
-      if (!parse_remove_columns(cfg, arg)) {
+      if (parse_remove_columns(cfg, arg)) {
         ERR_LOG("Failed to parse columns to exclude. (file: %s)\n", arg);
         exit(PARSE_ERR);
       }
@@ -104,8 +108,7 @@ static size_t parse_flag_by_index(
 // found.
 //
 // Exits if a PARSE_ERR is encountered.
-static int parse_short_flag(
-    struct Config *cfg, const int argc, const char **argv, size_t at) {
+static int parse_short_flag(struct Config *cfg, const int argc, char **argv, size_t at) {
   size_t subflag = 1;   // First character is -, so first flag char is at 1.
   size_t new_at;
   char found;
@@ -139,7 +142,7 @@ static int parse_short_flag(
 //
 // Exits if a PARSE_ERR is encountered.
 static size_t parse_long_flag(
-    struct Config *cfg, const int argc, const char **argv, size_t at) {
+    struct Config *cfg, const int argc, char **argv, size_t at) {
   for (struct Flag *f = FLAGS; f < FLAGS + FLAG_COUNT; f++) {
     if (!strcmp(argv[at] + 2, f->long_id)) {
       return parse_flag_by_index(cfg, argc, argv, at, f - FLAGS);
@@ -160,9 +163,9 @@ static size_t flag_length(struct Flag *f) {
 size_t max_flag_length() {
   size_t max = flag_length(FLAGS);
   size_t cur;
-  for (struct Flag *p = FLAGS; p < FLAGS + FLAG_COUNT; p++) {
+  for (struct Flag *p = FLAGS + 1; p != FLAGS + FLAG_COUNT; p++) {
     if ((cur = flag_length(p)) > max) {
-      cur = max;
+      max = cur;
     }
   }
   return max;
@@ -174,7 +177,7 @@ size_t max_flag_length() {
 // found.
 //
 // Exits if a PARSE_ERR is encountered.
-int parse_arg(struct Config *cfg, const int argc, const char **argv, size_t at) {
+int parse_arg(struct Config *cfg, const int argc, char **argv, size_t at) {
   LOG("Parsing argument at %lu\n", at);
   if (at < 1 || at >= argc) {
     return argc;

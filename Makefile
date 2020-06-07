@@ -20,14 +20,15 @@ INSTALL_DIR    = /usr/local/bin
 DATA_DIR       = ./data
 TEMP_DIR       = ./temp
 
+
+.PHONY: all
+all: version build comparisons
+
 .PHONY: version
 version:
 	# make version
 	@$(CC) --version
 	@sh -c "if [ $(CC) != $(LD) ]; then $(LD) --version; fi"
-
-.PHONY: all
-all: version build comparisons
 
 $(BUILD_DIR)/%.o:
 	$(CC) -c $(CFLAG) -o $@ $(SRC_DIR)/$(notdir $(@:%.o=%.c))

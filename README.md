@@ -2,7 +2,7 @@
 ![Build](https://github.com/MiltFra/csv-split/workflows/Build/badge.svg)
 ![Tests](https://github.com/MiltFra/csv-split/workflows/Tests/badge.svg)
 
-A simple command line program that splits [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) files into smaller parts.
+A fast command line program to split [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) files.
 
 ## Usage
 
@@ -26,6 +26,11 @@ OPTIONS:
 Simply run the executable with the desired inputs and flags.
 Then it will create a set of files of the form `<NEW_FILE><INDEX>.csv` that contain the 
 rows of the original file in the range `[INDEX+2,INDEX+2+COUNT)` where line `1` is the input header. 
+
+The program processes the input line by line using `getline`, which is provided by GCC. Therefore
+
+1. the memory usage is only affected by the line length and desired split length and
+2. the time complexity is approximately `O(L*I*E)` where `L` is the number of lines in the input, `I` is the number of columns in the input and `E` is the number of columns to be excluded.
 
 ## Installation
 

@@ -18,6 +18,7 @@ void initialise_config(struct Config *cfg) {
 	cfg->remove_columns_buffer = NULL;
 }
 
+// Counts the number of times `c` occurs in `str`
 size_t count_char(const char *str, char c) {
 	size_t count = 0;
 	for (const char *p = str; *p; p++) {
@@ -28,28 +29,37 @@ size_t count_char(const char *str, char c) {
 	return count;
 }
 
-void process_config(struct Config *config) {
+void add_colum_to_remove(struct Config *cfg, char *begin, char *end, size_t i) {
+	char *header = malloc((end - begin + 1) * sizeof(char));
+	size_t j;
+	for (j = 0; j < end - begin; j++) {
+		header[j] = begin[j];
+	}
+	header[j]							 = '\0';
+	cfg->remove_columns[i] = header;
+}
+
+void process_config(struct Config *cfg) {
 	// Big `if` in case we need to add more processing.
-	if (config->remove_columns_buffer != NULL) {
-		config->remove_columns_l =
-				count_char(config->remove_columns_buffer, config->delimiter) + 1;
-		LOG("Found %lu columns to be removed.\n", config->remove_columns_l);
-		config->remove_columns = malloc(config->remove_columns_l * sizeof(char *));
-		char *begin, *end, *header;
-		begin = end = config->remove_columns_buffer;
-		for (size_t i = 0; i < config->remove_columns_l; i++) {
-			while (*end != config->delimiter) {
+	if (cfg->remove_columns_buffer != NULL) {
+		cfg->remove_columns_l =
+				count_char(cfg->remove_columns_buffer, cfg->delimiter) + 1;
+		LOG("Found %lu columns to be removed.\n", cfg->remove_columns_l);
+		cfg->remove_columns = malloc(cfg->remove_columns_l * sizeof(char *));
+		char *begin, *end;
+		end = begin = cfg->remove_columns_buffer;
+		size_t i;
+		for (i = 0; i < cfg->remove_columns_l - 1; i++) {
+			while (*end != cfg->delimiter) {
 				end++;
 			}
-			header = malloc((end - begin + 1) * sizeof(char));
-			size_t j;
-			for (j = 0; j < end - begin; j++) {
-				header[j] = begin[j];
-			}
-			header[j]									= '\0';
-			config->remove_columns[i] = header;
-			begin											= ++end;
+			add_colum_to_remove(cfg, begin, end, i);
+			begin = ++end;	// Next arg begins after delim
 		}
+		while (*end != '\0') {
+			end++;
+		}
+		add_colum_to_remove(cfg, begin, end, i);
 	}
 }
 

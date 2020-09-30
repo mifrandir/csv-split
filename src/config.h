@@ -7,18 +7,18 @@
 #define CSV_SPLIT_VERSION "v0.0.2"
 
 struct Config {
-	/* Strings */
-	const char *file_path;
-	const char *new_file_name;
-	/* Booleans */
-	char exclude_headers;
-	char include_remainders;
-	/* Other values */
-	char delimiter;
-	char *remove_columns_buffer;
-	size_t line_count;
-	size_t remove_columns_l;
-	char **remove_columns;
+  /* Strings */
+  const char *file_path;
+  const char *new_file_name;
+  /* Booleans */
+  char exclude_headers;
+  char include_remainders;
+  /* Other values */
+  char delimiter;
+  char *remove_columns_buffer;
+  size_t line_count;
+  size_t remove_columns_l;
+  char **remove_columns;
 };
 
 // Function to assign default values to cfg fields.

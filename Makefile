@@ -1,6 +1,6 @@
 CC          = gcc
 LD          = gcc
-CFLAG       = -Wall
+CFLAG       = -Wall -O3
 PROG_NAME   = csv-split
 
 FILES_EXIST = ./scripts/files_exist.sh

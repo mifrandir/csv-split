@@ -57,7 +57,7 @@ void process_config(struct Config *config) {
 void parse_config(struct Config *cfg, const int argc, char **argv) {
   LOG("Parsing config.\n");
   for (size_t i = 1; i < argc;) {
-    i = parse_arg(cfg, argc, argv, i);
+    parse_arg(cfg, argc, argv, &i);
   }
   if (!cfg->file_path) {
     fprintf(HELP_OUT, "Expected input file. Use --help to learn more.\n");

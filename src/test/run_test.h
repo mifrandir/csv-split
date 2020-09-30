@@ -4,8 +4,8 @@
 #define MAX_PATH_LEN 1024
 
 struct Test {
-	char *name;
-	char *flags;
+  char *name;
+  char *flags;
 };
 
 int run_test(struct Test *test);

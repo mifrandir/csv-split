@@ -10,17 +10,19 @@ A fast command line program to split [CSV](https://en.wikipedia.org/wiki/Comma-s
 $ csv-split -h
 Split CSV files by lines
 
+VERSION: v0.0.2
+
 USAGE:
         csv-split [OPTIONS] <FILE_TO_SPLIT>
 
 OPTIONS:
-        -n, --new-file-name <NEW_FILE>          Name of the new files. This will be appended with an incremented number (default: "split")
-        -e, --exclude-headers                   Exclude headers in new files (default: false)
-        -l, --line-count <COUNT>                Number of lines per file (default: 1)
-        -d, --delimiter <DELIMITER>             Character used for column separation (default: ',')
-        -r, --remove-columns <FILE>             Specify column names to be removed during processing in specified file.
-        -i, --include-remainders                Include remainder rows in the split files (default: false).
-        -h, --help                              Display this message
+        -n, --new-file-name <NEW_FILE>                          Name of the new files. This will be appended with an incremented number (default: "split")
+        -e, --exclude-headers                                   Exclude headers in new files (default: false)
+        -l, --line-count <COUNT>                                Number of lines per file (default: 1)
+        -d, --delimiter <DELIMITER>                             Character used for column separation (default: ',')
+        -r, --remove-columns <COL1>[<DELIM><COL2><DELIM>...]    Specify column names to be removed during processing.
+        -i, --include-remainders                                Include remainder rows in the split files (default: false).
+        -h, --help                                              Display this message
 ```
 
 Simply run the executable with the desired inputs and flags.

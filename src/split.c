@@ -217,27 +217,26 @@ static void process_batch(
     struct Batch *output) {  // Buffer that holds all the necessary information
                              // for the current set of lines.
   LOG("Processing batch.\n");
-  char *line;
-  size_t len;
-  size_t i;
+  char **line;
+  size_t *len, i;
   ssize_t read;
   char *value_buffer[output->column_count];
   sprintf(output->file_name, "%s%lu.csv", config->new_file_name, file_count++);
   for (i = 0; i < config->line_count; i++) {
-    line = (output->lines)[i];
-    len  = (output->line_lengths)[i];
-    read = getline(&line, &len, file);
+    line          = output->lines + i;
+    len           = output->line_lengths + i;
+    size_t before = *len;
+    read          = getline(line, len, file);
     if (read == -1) {
       if (config->include_remainders) {
         LOG("Writing remainders\n");
-        output->line_count = i;
-        write_batch(config, headers, output);
+        break;
       }
       return;
     }
     load_values(
         config,
-        line,
+        *line,
         input_column_count,
         output->column_count,
         value_buffer);
@@ -275,6 +274,9 @@ static void initialise_batch(
     for (size_t *q = batch->line_lengths; q - batch->line_lengths < max_lines;
          q++) {
       *q = 0;
+    }
+    for (char **r = batch->lines; r - batch->lines < max_lines; r++) {
+      *r = NULL;
     }
   }
   batch->line_count   = 0;

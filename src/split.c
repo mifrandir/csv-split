@@ -225,7 +225,6 @@ static void process_batch(
   for (i = 0; i < config->line_count; i++) {
     line          = output->lines + i;
     len           = output->line_lengths + i;
-    size_t before = *len;
     read          = getline(line, len, file);
     if (read == -1) {
       if (config->include_remainders) {
@@ -266,17 +265,17 @@ static void initialise_batch(
     batch->values       = malloc(max_lines * sizeof(char **));
     batch->line_lengths = malloc(max_lines * sizeof(size_t));
     batch->file_name =
-        malloc(strlen(config->new_file_name) + FILE_NAME_SUFFIX_BUFFER);
+        malloc(strlen(config->new_file_name) + LEN_FILE_NAME_SUFFIX_BUFFER);
     for (char ***p = batch->values; p - batch->values < max_lines; p++) {
       LOG("Allocating sub_values\n");
       *p = malloc(cols * sizeof(char *));
     }
     for (size_t *q = batch->line_lengths; q - batch->line_lengths < max_lines;
          q++) {
-      *q = 0;
+      *q = LEN_INITIAL_LINE_BUFFER;
     }
     for (char **r = batch->lines; r - batch->lines < max_lines; r++) {
-      *r = NULL;
+      *r = malloc(LEN_INITIAL_LINE_BUFFER * sizeof(char));
     }
   }
   batch->line_count   = 0;

@@ -8,15 +8,15 @@
 
 struct Config {
   /* Strings */
-  const char *file_path;
-  const char *new_file_name;
+  const char *in_file_path;
+  const char *out_file_path;
   /* Booleans */
-  char exclude_headers;
-  char include_remainders;
+  char do_exclude_headers;
+  char do_include_remainders;
   /* Other values */
-  char delimiter;
+  char delim;
   char *remove_columns_buffer;
-  size_t line_count;
+  size_t num_lines;
   size_t remove_columns_l;
   char **remove_columns;
 };
@@ -27,7 +27,7 @@ void initialise_config(struct Config *cfg);
 // Function to parse given command line arguments to cfg fields.
 void parse_config(struct Config *cfg, const int argc, char **argv);
 
-void process_config(struct Config *config);
+void process_config(struct Config *cfg);
 
 void print_help(void);
 

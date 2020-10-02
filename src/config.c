@@ -7,12 +7,12 @@
 
 // Fills the fields of a given Config struct with default values.
 void initialise_config(struct Config *cfg) {
-  cfg->file_path             = DEFAULT_FILE_PATH;
-  cfg->new_file_name         = DEFAULT_NEW_FILE_NAME;
-  cfg->exclude_headers       = DEFAULT_EXCLUDE_HEADERS;
-  cfg->include_remainders    = DEFAULT_INCLUDE_REMAINDERS;
-  cfg->delimiter             = DEFAULT_DELIMITER;
-  cfg->line_count            = DEFAULT_LINE_COUNT;
+  cfg->in_file_path             = DEFAULT_FILE_PATH;
+  cfg->out_file_path         = DEFAULT_NEW_FILE_NAME;
+  cfg->do_exclude_headers       = DEFAULT_EXCLUDE_HEADERS;
+  cfg->do_include_remainders    = DEFAULT_INCLUDE_REMAINDERS;
+  cfg->delim             = DEFAULT_DELIMITER;
+  cfg->num_lines            = DEFAULT_LINE_COUNT;
   cfg->remove_columns_l      = 0;
   cfg->remove_columns        = NULL;
   cfg->remove_columns_buffer = NULL;
@@ -43,14 +43,14 @@ void process_config(struct Config *cfg) {
   // Big `if` in case we need to add more processing.
   if (cfg->remove_columns_buffer != NULL) {
     cfg->remove_columns_l =
-        count_char(cfg->remove_columns_buffer, cfg->delimiter) + 1;
+        count_char(cfg->remove_columns_buffer, cfg->delim) + 1;
     LOG("Found %lu columns to be removed.\n", cfg->remove_columns_l);
     cfg->remove_columns = malloc(cfg->remove_columns_l * sizeof(char *));
     char *begin, *end;
     end = begin = cfg->remove_columns_buffer;
     size_t i;
     for (i = 0; i < cfg->remove_columns_l - 1; i++) {
-      while (*end != cfg->delimiter) {
+      while (*end != cfg->delim) {
         end++;
       }
       add_colum_to_remove(cfg, begin, end, i);
@@ -69,7 +69,7 @@ void parse_config(struct Config *cfg, const int argc, char **argv) {
   for (size_t i = 1; i < argc;) {
     parse_arg(cfg, argc, argv, &i);
   }
-  if (!cfg->file_path) {
+  if (!cfg->in_file_path) {
     fprintf(HELP_OUT, "Expected input file. Use --help to learn more.\n");
     exit(PARSE_ERR);
   }

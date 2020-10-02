@@ -63,9 +63,9 @@ static size_t parse_flag_by_index(
         exit(PARSE_ERR);
       }
       arg                = argv[arg_at];
-      cfg->new_file_name = arg;
+      cfg->out_file_path = arg;
       return *at += 2;  // Read extra argument.
-    case EXCLUDE_HEADERS: cfg->exclude_headers = 1; return *at += 1;
+    case EXCLUDE_HEADERS: cfg->do_exclude_headers = 1; return *at += 1;
     case LINE_COUNT:
       if (*at + 1 == argc) {
         ERR_LOG("Expected line count. Use --help to learn more.\n");
@@ -74,12 +74,12 @@ static size_t parse_flag_by_index(
       if (!is_natural(argv[arg_at])) {
         ERR_LOG("Expected valid positive integer as line count.\n");
       }
-      cfg->line_count = atoi(argv[arg_at]);
-      if (cfg->line_count <= 0) {
+      cfg->num_lines = atoi(argv[arg_at]);
+      if (cfg->num_lines <= 0) {
         ERR_LOG("Line count needs to be greater than zero.\n");
         exit(PARSE_ERR);
       }
-      LOG("Found line count: %lu\n", cfg->line_count);
+      LOG("Found line count: %lu\n", cfg->num_lines);
       return *at += 2;  // Read extra argument.
     case DELIMITER:
       if (arg_at == argc ||
@@ -87,7 +87,7 @@ static size_t parse_flag_by_index(
         ERR_LOG("Expected delimiter. Use --help to learn more.\n");
         exit(PARSE_ERR);
       }
-      cfg->delimiter = argv[arg_at][0];
+      cfg->delim = argv[arg_at][0];
       return *at += 2;
     case REMOVE_COLUMNS:
       if (*at + 1 == argc) {  // Any string will be treated as a file name, as
@@ -101,7 +101,7 @@ static size_t parse_flag_by_index(
         exit(PARSE_ERR);
       }
       return *at += 2;
-    case INCLUDE_REMAINDERS: cfg->include_remainders = 1; return (*at)++;
+    case INCLUDE_REMAINDERS: cfg->do_include_remainders = 1; return (*at)++;
     case HELP: print_help(); exit(0);
     default: exit(PARSE_ERR);
   }
@@ -200,7 +200,7 @@ size_t parse_arg(struct Config *cfg, const int argc, char **argv, size_t *at) {
   LOG("Parsing argument at %lu\n", *at);
   if (!is_flag(argv[*at])) {
     LOG("Found file path\n");
-    cfg->file_path = argv[*at];
+    cfg->in_file_path = argv[*at];
     return (*at)++;
   }
   if (!is_long_flag(argv[*at])) {

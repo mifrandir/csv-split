@@ -95,8 +95,7 @@ static struct Flag FLAGS[] = {
     FLAG_INCLUDE_REMAINDERS,
     FLAG_HELP};
 
-size_t
-    parse_arg(struct Config *config, const int argc, char **argv, size_t *at);
+size_t parse_arg(struct Config *cfg, const int argc, char **argv, size_t *at);
 
 size_t max_flag_length();
 

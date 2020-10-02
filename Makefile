@@ -16,6 +16,11 @@ TEST_BUILD_DIR = $(BUILD_DIR)/test
 TEST_LIST      = $(TEST_SRC_LIST:%.c=%)
 TEST_SRC_LIST  = $(notdir $(wildcard $(TEST_SRC_DIR)/*test*.c))
 TEST_OBJ_LIST  = $(addprefix $(TEST_BUILD_DIR)/,$(TEST_LIST:%=%.o))
+BENCH_SRC_DIR  = $(SRC_DIR)/benchmark
+BENCH_BUILD_DIR= $(BUILD_DIR)/benchmark
+BENCH_LIST     = $(BENCH_SRC_LIST:%.c=%)
+BENCH_SRC_LIST = $(notdir $(wildcard $(BENCH_SRC_DIR)/*.c))
+BENCH_OBJ_LIST = $(addprefix $(BENCH_BUILD_DIR)/,$(BENCH_LIST:%=%.o))
 INSTALL_DIR    = /usr/local/bin
 DATA_DIR       = ./data
 TEMP_DIR       = ./temp
@@ -118,3 +123,27 @@ comparisons: mkdir test-mkdir
 	$(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/compare_directories.o $(TEST_SRC_DIR)/compare_directories.c
 	$(LD) -o $(BIN_DIR)/compare-files $(TEST_BUILD_DIR)/compare_files.o
 	$(LD) -o $(BIN_DIR)/compare-dirs $(TEST_BUILD_DIR)/compare_directories.o
+
+.PHONY: benchmark
+benchmark: $(DATA_DIR)/benchmark bench-build
+
+.PHONY: bench-mkdir
+bench-mkdir:
+	mkdir -p $(BENCH_BUILD_DIR)
+
+.PHONY: bench-build
+bench-build: bench-mkdir bench-compile
+
+.PHONY: bench-compile
+bench-compile: $(BENCH_OBJ_LIST)
+	$(LD) $(CFLAG) -o $(BIN_DIR)/generate $(BENCH_OBJ_LIST)
+
+$(BENCH_BUILD_DIR)/%.o:
+	$(CC) -c $(CFLAG) -o $@ $(BENCH_SRC_DIR)/$(notdir $(@:%.o=%.c))
+
+$(DATA_DIR)/benchmark:
+	scripts/generate_bench_data.sh $(BIN_DIR)/generate $(DATA_DIR)/benchmark
+
+
+$(TEST_BUILD_DIR)/%.o:
+	$(CC) -c $(CFLAG) -o $@ $(TEST_SRC_DIR)/$(notdir $(@:%.o=%.c))

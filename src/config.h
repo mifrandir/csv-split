@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define CSV_SPLIT_VERSION "v0.0.2"
+#define CSV_SPLIT_VERSION "v0.1.0"
 
 struct Config {
   /* Strings */

@@ -32,7 +32,7 @@ rows of the original file in the range `[INDEX+2,INDEX+2+COUNT)` where line `1` 
 The program processes the input line by line using `getline`, which is provided by GCC. Therefore
 
 1. the memory usage is only affected by the line length and desired split length and
-2. the time complexity is approximately `O(L*I*E)` where `L` is the number of lines in the input, `I` is the number of columns in the input and `E` is the number of columns to be excluded.
+2. the time complexity is approximately `O(L*I*W)` where `L` is the number of lines in the input, `I` is the number of columns in the input and `W` is the number of characters in the longest word in the input. This is obviously an upper bound, so the runtime is going to be more accurately represented if `W` is chosen to be the *average* word length in the input.
 
 ## Installation
 

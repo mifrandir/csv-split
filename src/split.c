@@ -148,8 +148,7 @@ static void load_values(
   size_t actual_num_cols;
   remove_linebreak(line, strlen(line));
   if (input_column_count !=
-      (actual_num_cols =
-           strsub(line, cfg->delim, WORKING_DELIM) + 1)) {
+      (actual_num_cols = strsub(line, cfg->delim, WORKING_DELIM) + 1)) {
     fprintf(
         stderr,
         "Unexpected number of columns in input. (expected: %lu, found: %lu)\n",
@@ -223,9 +222,9 @@ static void process_batch(
   char *value_buffer[output->num_cols];
   sprintf(output->file_name, "%s%lu.csv", cfg->out_file_path, num_files++);
   for (i = 0; i < cfg->num_lines; i++) {
-    line_ptr          = output->lines + i;
-    len_ptr           = output->line_lens + i;
-    read          = getline(line_ptr, len_ptr, file);
+    line_ptr = output->lines + i;
+    len_ptr  = output->line_lens + i;
+    read     = getline(line_ptr, len_ptr, file);
     if (read == -1) {
       if (cfg->do_include_remainders) {
         LOG("Writing remainders\n");
@@ -262,7 +261,7 @@ static void initialise_batch(
     // memory.
     batch->lines = malloc(max_lines * sizeof(char *));
     LOG("Allocating values\n");
-    batch->values       = malloc(max_lines * sizeof(char **));
+    batch->values    = malloc(max_lines * sizeof(char **));
     batch->line_lens = malloc(max_lines * sizeof(size_t));
     batch->file_name =
         malloc(strlen(cfg->out_file_path) + LEN_FILE_NAME_SUFFIX_BUFFER);
@@ -270,16 +269,15 @@ static void initialise_batch(
       LOG("Allocating sub_values\n");
       *p = malloc(cols * sizeof(char *));
     }
-    for (size_t *q = batch->line_lens; q - batch->line_lens < max_lines;
-         q++) {
+    for (size_t *q = batch->line_lens; q - batch->line_lens < max_lines; q++) {
       *q = LEN_INITIAL_LINE_BUFFER;
     }
     for (char **r = batch->lines; r - batch->lines < max_lines; r++) {
       *r = malloc(LEN_INITIAL_LINE_BUFFER * sizeof(char));
     }
   }
-  batch->num_lines   = 0;
-  batch->num_cols = cols;
+  batch->num_lines = 0;
+  batch->num_cols  = cols;
 }
 
 // Splits a file by lines and writes them to outputs as specified in CFG.

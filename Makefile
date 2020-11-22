@@ -142,7 +142,7 @@ $(BENCH_BUILD_DIR)/%.o:
 	$(CC) -c $(CFLAG) -o $@ $(BENCH_SRC_DIR)/$(notdir $(@:%.o=%.c))
 
 $(DATA_DIR)/benchmark:
-	scripts/generate_bench_data.sh $(BIN_DIR)/generate $(DATA_DIR)/benchmark
+	scripts/generate_bench_data.py $(BIN_DIR)/generate $(DATA_DIR)/benchmark
 
 
 $(TEST_BUILD_DIR)/%.o:

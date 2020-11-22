@@ -111,7 +111,6 @@ static void filter_line(
   if (output_length == input_length) {  // If there's nothing to filter, we can
                                         // just copy the enitre array.
     memcpy(output, input, input_length * sizeof(char *));
-    LOG("Skipped filtering because input and output sizes are identical.\n");
     return;
   }
   size_t i, j;
@@ -164,7 +163,6 @@ static void load_values(
     *(next_value++) = begin;
     begin           = end;
   }
-  LOG("Wrote %lu values\n", next_value - values);
 }
 
 // Writes a single line to F filled with COLUMN_COUNT fields of VALUES separated
@@ -266,7 +264,6 @@ static void initialise_batch(
     batch->file_name =
         malloc(strlen(cfg->out_file_path) + LEN_FILE_NAME_SUFFIX_BUFFER);
     for (char ***p = batch->values; p - batch->values < max_lines; p++) {
-      LOG("Allocating sub_values\n");
       *p = malloc(cols * sizeof(char *));
     }
     for (size_t *q = batch->line_lens; q - batch->line_lens < max_lines; q++) {

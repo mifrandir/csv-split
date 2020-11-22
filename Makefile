@@ -147,3 +147,6 @@ $(DATA_DIR)/benchmark:
 
 $(TEST_BUILD_DIR)/%.o:
 	$(CC) -c $(CFLAG) -o $@ $(TEST_SRC_DIR)/$(notdir $(@:%.o=%.c))
+
+$(BIN_DIR)/imartingraham:
+	git clone https://github.com/imartingraham/csv-split $(BIN_DIR)/imartingraham

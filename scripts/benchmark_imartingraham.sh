@@ -3,7 +3,7 @@ DIR=$1
 NUM_LINES=$2
 OUT_LOG=$3
 if [ -z "$3" ]; then 
-    printf "Expected 3 arguments: benchmark_miltfra.sh <DATA-DIR> <NUM_LINES> <OUT_LOG>\n"
+    printf "Expected 3 arguments: <DATA-DIR> <NUM_LINES> <OUT_LOG>\n"
     exit 1
 fi
 dout="./temp"

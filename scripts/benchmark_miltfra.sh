@@ -4,7 +4,7 @@ BIN=$2
 NUM_LINES=$3
 OUT_LOG=$4
 if [ -z "$4" ]; then 
-    printf "Expected 4 arguments: benchmark_miltfra.sh <DATA-DIR> <BINARY> <NUM_LINES> <OUT_LOG>\n"
+    printf "Expected 4 arguments: <DATA-DIR> <BINARY> <NUM_LINES> <OUT_LOG>\n"
     exit 1
 fi
 dout="./tmp"

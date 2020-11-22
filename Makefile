@@ -128,7 +128,7 @@ comparisons: mkdir test-mkdir
 benchmark: $(DATA_DIR)/benchmark bench-build
 
 .PHONY: bench-mkdir
-bench-mkdir:
+bench-mkdir: mkdir
 	mkdir -p $(BENCH_BUILD_DIR)
 
 .PHONY: bench-build

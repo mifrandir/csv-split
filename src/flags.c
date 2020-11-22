@@ -121,21 +121,21 @@ static int parse_short_flag(
     size_t *at) {
   size_t subflag = 1;  // First character is -, so first flag char is at 1.
   size_t start   = *at;
-  size_t tmp_at;
+  size_t temp_at;
   char found;
   do {
     found = 0;
     for (struct Flag *f = FLAGS; f < FLAGS + FLAG_COUNT; f++) {
       if (argv[start][subflag] == f->short_id) {
-        tmp_at = *at;
+        temp_at = *at;
         LOG("Found short flag for %s\n", f->long_id);
-        parse_flag_by_index(cfg, argc, argv, &tmp_at, f - FLAGS);
-        if (tmp_at >
+        parse_flag_by_index(cfg, argc, argv, &temp_at, f - FLAGS);
+        if (temp_at >
             start +
                 1) {  // Boolean flags are not allowed after flags
                       // that require a value. (e.g. `-ne <FILE>` is illegal)
           LOG("Last flag was non-boolean.\n");
-          return *at = tmp_at;
+          return *at = temp_at;
         }
         found = 1;
         break;

@@ -11,11 +11,11 @@ dout="./temp"
 rm -rf $dout
 files=$(find $1 -type f | paste -sd ',')
 hyperfine \
-    "$BIN -l $NUM_LINES {file} -n $dout/split" \
+    "$BIN split -s $NUM_LINES $dout/xsv  {file}" \
     --export-csv $OUT_LOG \
-    -m 1000 \
+    -m 3 \
     -i \
-    --warmup 100 \
+    --warmup 3 \
     -L file $files \
     --prepare "mkdir -p $dout" \
     --cleanup "rm -rf $dout" \

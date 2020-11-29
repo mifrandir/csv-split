@@ -1,13 +1,5 @@
 #include "split.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
-#include "config.h"
-#include "log.h"
-
 // Replaces every occurence of old in str with new and returns the
 // number of replacements.
 static size_t strsub(char *str, const char old, const char new) {
@@ -38,21 +30,15 @@ static size_t remove_linebreak(char *str, size_t len) {
 #define WORKING_DELIM '\0'
 
 // Reads the first line of a file and extracts its headers.
-static void load_headers(
-    const struct Config *cfg,
-    FILE *f,
-    size_t *len,
-    char ***headers) {
+static void
+    load_headers(const struct Config *cfg, size_t *len, char ***headers) {
   LOG("Getting file headers\n");
-  if (f == NULL) {
-    ERR_LOG("Received NULL as file.\n");
-    exit(EXIT_FAILURE);
-  }
   // Reading the line
   size_t line_buffer_len = 0;
   char *line             = NULL;
-  ssize_t line_len       = getline(&line, &line_buffer_len, f);
-  if (!line) {
+  ssize_t line_len       = io_read_line(&line, &line_buffer_len);
+  if (line_len == -1 || !line) {
+    ERR_LOG("Could not read first line of file.\n");
     exit(EXIT_FAILURE);
   }
   line_len = remove_linebreak(line, line_len);
@@ -145,11 +131,10 @@ static void load_values(
     const size_t input_column_count,
     const size_t output_column_count,
     char **values) {
-  size_t actual_column_count;
   remove_linebreak(line, strlen(line));
-  if (input_column_count !=
-      (actual_column_count =
-           strsub(line, config->delimiter, WORKING_DELIM) + 1)) {
+  size_t actual_column_count =
+      strsub(line, config->delimiter, WORKING_DELIM) + 1;
+  if (input_column_count != actual_column_count) {
     fprintf(
         stderr,
         "Unexpected number of columns in input. (expected: %lu, found: %lu)\n",
@@ -210,7 +195,6 @@ static void write_batch(
 // Reads the next set of lines from the input and processes them.
 static void process_batch(
     const struct Config *config,
-    FILE *file,
     const size_t input_column_count,
     const char *include_column,
     char **headers,
@@ -226,8 +210,8 @@ static void process_batch(
   for (i = 0; i < config->line_count; i++) {
     line = (output->lines)[i];
     len  = (output->line_lengths)[i];
-    read = getline(&line, &len, file);
-    if (read == -1) {
+    read = io_read_line(&line, &len);
+    if (read <= 0) {
       if (config->include_remainders) {
         LOG("Writing remainders\n");
         output->line_count = i;
@@ -288,12 +272,12 @@ void split_csv(const struct Config *cfg) {
     fprintf(stderr, "File does not exist. (%s)\n", cfg->file_path);
     exit(EXIT_FAILURE);
   }
-  FILE *f = fopen(cfg->file_path, "r");
+  io_read_open(cfg->file_path);
   // Processing file header.
   // TODO: Include option to process files without headers.
   char **input_headers = NULL;
   size_t input_length  = 0;
-  load_headers(cfg, f, &input_length, &input_headers);
+  load_headers(cfg, &input_length, &input_headers);
   LOG("Filtering file headers\n");
   char include_column[input_length];
   size_t output_length =
@@ -315,10 +299,10 @@ void split_csv(const struct Config *cfg) {
     initialise_batch(cfg, &output_buffer, cfg->line_count, output_length);
     process_batch(
         cfg,
-        f,
         input_length,
         include_column,
         output_headers,
         &output_buffer);
   } while (output_buffer.line_count == cfg->line_count);
+  io_read_close();
 }

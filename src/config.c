@@ -11,6 +11,7 @@ void initialise_config(struct Config *cfg) {
   cfg->new_file_name         = DEFAULT_NEW_FILE_NAME;
   cfg->exclude_headers       = DEFAULT_EXCLUDE_HEADERS;
   cfg->include_remainders    = DEFAULT_INCLUDE_REMAINDERS;
+  cfg->variable_columns      = DEFAULT_VARIABLE_COLUMNS;
   cfg->delimiter             = DEFAULT_DELIMITER;
   cfg->line_count            = DEFAULT_LINE_COUNT;
   cfg->remove_columns_l      = 0;

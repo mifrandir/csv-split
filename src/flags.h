@@ -27,6 +27,7 @@ enum CLI_FLAG_TYPE {
   DELIMITER,
   REMOVE_COLUMNS,
   INCLUDE_REMAINDERS,
+  VARIABLE_COMUNS,
   HELP
 };
 
@@ -36,6 +37,7 @@ enum CLI_FLAG_TYPE {
 #define DEFAULT_LINE_COUNT         1
 #define DEFAULT_DELIMITER          ','
 #define DEFAULT_INCLUDE_REMAINDERS 0
+#define DEFAULT_VARIABLE_COLUMNS   0
 
 #define FLAG(s, l, a, d)                                                       \
   { s, l, a, d }
@@ -83,6 +85,13 @@ enum CLI_FLAG_TYPE {
       "",                                                                      \
       "Include remainder rows in the split files (default: false).")
 
+#define FLAG_VARIABLE_COLUMNS                                                  \
+  FLAG(                                                                        \
+      'v',                                                                     \
+      "variable-columns",                                                      \
+      "",                                                                      \
+      "Allow rows to have different numbers of columns than header.")
+
 #define FLAG_HELP FLAG('h', "help", "", "Display this message")
 
 #define FLAG_COUNT (sizeof FLAGS / sizeof FLAGS[0])
@@ -93,6 +102,7 @@ static struct Flag FLAGS[] = {
     FLAG_DELIMITER,
     FLAG_REMOVE_COLUMNS,
     FLAG_INCLUDE_REMAINDERS,
+    FLAG_VARIABLE_COLUMNS,
     FLAG_HELP};
 
 size_t

@@ -13,6 +13,7 @@ struct Config {
   /* Booleans */
   char exclude_headers;
   char include_remainders;
+  char variable_columns;
   /* Other values */
   char delimiter;
   char *remove_columns_buffer;

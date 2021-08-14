@@ -102,6 +102,7 @@ static size_t parse_flag_by_index(
       }
       return *at += 2;
     case INCLUDE_REMAINDERS: cfg->include_remainders = 1; return (*at)++;
+    case VARIABLE_COMUNS: cfg->variable_columns = 1; return (*at)++;
     case HELP: print_help(); exit(0);
     default: exit(PARSE_ERR);
   }
@@ -130,10 +131,9 @@ static int parse_short_flag(
         tmp_at = *at;
         LOG("Found short flag for %s\n", f->long_id);
         parse_flag_by_index(cfg, argc, argv, &tmp_at, f - FLAGS);
-        if (tmp_at >
-            start +
-                1) {  // Boolean flags are not allowed after flags
-                      // that require a value. (e.g. `-ne <FILE>` is illegal)
+        // Boolean flags are not allowed after flags
+        // that require a value. (e.g. `-ne <FILE>` is illegal)
+        if (tmp_at > start + 1) {
           LOG("Last flag was non-boolean.\n");
           return *at = tmp_at;
         }

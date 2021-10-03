@@ -1,0 +1,930 @@
+bin
+build
+temp 
+temp
+data/benchmark 
+  135  Makefile 
+Viewed
+@@ -16,105 +16,150 @@ TEST_BUILD_DIR = $(BUILD_DIR)/test
+TEST_LIST      = $(TEST_SRC_LIST:%.c=%)
+TEST_SRC_LIST  = $(notdir $(wildcard $(TEST_SRC_DIR)/*test*.c))
+TEST_OBJ_LIST  = $(addprefix $(TEST_BUILD_DIR)/,$(TEST_LIST:%=%.o))
+BENCH_SRC_DIR  = $(SRC_DIR)/benchmark
+BENCH_BUILD_DIR= $(BUILD_DIR)/benchmark
+BENCH_LIST     = $(BENCH_SRC_LIST:%.c=%)
+BENCH_SRC_LIST = $(notdir $(wildcard $(BENCH_SRC_DIR)/*.c))
+BENCH_OBJ_LIST = $(addprefix $(BENCH_BUILD_DIR)/,$(BENCH_LIST:%=%.o))
+INSTALL_DIR    = /usr/local/bin
+DATA_DIR       = ./data
+TEMP_DIR       = ./temp
+VERBOSE 			 = 0
+
+ifeq ($(VERBOSE),0)
+	V := @
+else
+	V :=
+endif
+
+.PHONY: all
+all: version build comparisons
+all: build comparisons
+
+.PHONY: version
+version:
+	# make version
+	@$(CC) --version
+	@sh -c "if [ $(CC) != $(LD) ]; then $(LD) --version; fi"
+	$(V) $(CC) --version
+	$(V) sh -c "if [ $(CC) != $(LD) ]; then $(LD) --version; fi"
+
+$(BUILD_DIR)/%.o:
+	$(CC) -c $(CFLAG) -o $@ $(SRC_DIR)/$(notdir $(@:%.o=%.c))
+	@echo "Compiling $@"
+	$(V) $(CC) -c $(CFLAG) -o $@ $(SRC_DIR)/$(notdir $(@:%.o=%.c))
+
+.PHONY: compile
+compile: $(OBJ_LIST)
+
+.PHONY: mkdir
+mkdir:
+	# make mkdir
+	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BIN_DIR)
+	$(V) mkdir -p $(BUILD_DIR)
+	$(V) mkdir -p $(BIN_DIR)
+
+.PHONY: build
+build: mkdir compile
+	# make build
+	$(LD) $(OBJ_LIST) -o $(BIN_DIR)/$(PROG_NAME)
+	@echo "Linking $(BIN_DIR)/$(PROG_NAME)"
+	$(V) $(LD) $(OBJ_LIST) -o $(BIN_DIR)/$(PROG_NAME)
+
+.PHONY: clean
+clean: test-clean
+	# make clean
+	-rm -rf $(BIN_DIR) $(BUILD_DIR)
+clean: test-clean bench-clean
+	$(V) -rm -rf $(BIN_DIR) $(BUILD_DIR)
+
+.PHONY: check
+check:
+	# make check
+	$(FILES_EXIST) $(OBJ_LIST)
+	$(FILES_EXIST) $(BIN_DIR)/$(PROG_NAME)
+	@echo "Checking object files"
+	$(V) $(FILES_EXIST) $(OBJ_LIST)
+	@echo "Checking binaries"
+	$(V) $(FILES_EXIST) $(BIN_DIR)/$(PROG_NAME)
+
+.PHONY: install
+install: build
+	# make install
+	mkdir -p $(INSTALL_DIR)
+	cp $(BIN_DIR)/$(PROG_NAME) $(INSTALL_DIR)/$(PROG_NAME)
+	$(V) mkdir -p $(INSTALL_DIR)
+	$(V) cp $(BIN_DIR)/$(PROG_NAME) $(INSTALL_DIR)/$(PROG_NAME)
+
+.PHONY: uninstall
+uninstall:
+	# make uninstall
+	rm -rf $(INSTALL_DIR)/$(PROG_NAME)
+	$(V) rm -rf $(INSTALL_DIR)/$(PROG_NAME)
+
+.PHONY: install-local
+install-local: $(PROG_NAME)
+	# make install-local
+	mkdir -p $(DESTDIR)
+	cp $(BIN_DIR)/$(PROG_NAME) $(DESTDIR)/$(PROG_NAME)
+	$(V) mkdir -p $(DESTDIR)
+	$(V) cp $(BIN_DIR)/$(PROG_NAME) $(DESTDIR)/$(PROG_NAME)
+
+.PHONY: uninstall-local
+uninstall-local:
+	# make uninstall-local
+	rm -rf $(DESTDIR)/$(PROG_NAME)
+	$(V) rm -rf $(DESTDIR)/$(PROG_NAME)
+
+.PHONY: test
+test: version clean build check test-build
+	# make test
+	# checking whether comparisons work
+	$(BIN_DIR)/compare-files $(BIN_DIR)/compare-files $(BIN_DIR)/compare-files
+	$(BIN_DIR)/compare-dirs $(BIN_DIR) $(BIN_DIR)
+	# preparing data directory
+	./scripts/init_test.sh
+	$(BIN_DIR)/tests $(BIN_DIR)/$(PROG_NAME) $(DATA_DIR)/test $(TEMP_DIR)/test
+test: clean build check test-build
+	@echo "Testing test utils"
+	$(V) $(BIN_DIR)/compare-files $(BIN_DIR)/compare-files $(BIN_DIR)/compare-files
+	$(V) $(BIN_DIR)/compare-dirs $(BIN_DIR) $(BIN_DIR)
+	@echo "Initialising tests"
+	$(V) ./scripts/init_test.sh
+	@echo "----- Running tests -----"
+	$(V) $(BIN_DIR)/tests $(BIN_DIR)/$(PROG_NAME) $(DATA_DIR)/test $(TEMP_DIR)/test
+	@echo "-------------------------"
+
+.PHONY: test-build
+test-build: test-mkdir comparisons test-compile
+
+.PHONY: test-mkdir
+test-mkdir:
+	# make test-mkdir
+	mkdir -p $(TEST_BUILD_DIR)
+	$(V) mkdir -p $(TEST_BUILD_DIR)
+
+$(TEST_BUILD_DIR)/%.o:
+	$(CC) -c $(CFLAG) -o $@ $(TEST_SRC_DIR)/$(notdir $(@:%.o=%.c))
+	@echo "Compiling $@"
+	$(V) $(CC) -c $(CFLAG) -o $@ $(TEST_SRC_DIR)/$(notdir $(@:%.o=%.c))
+
+.PHONY: test-compile
+test-compile: $(TEST_OBJ_LIST)
+	# make test-compile
+	$(LD) -o $(BIN_DIR)/tests $(TEST_OBJ_LIST)
+	@echo "Linking $(BIN_DIR)/tests"
+	$(V) $(LD) -o $(BIN_DIR)/tests $(TEST_OBJ_LIST)
+
+.PHONY: test-clean
+test-clean:
+	# make test-clean
+	-rm -rf $(TEMP_DIR) $(TEST_BUILD_DIR)
+	$(V) -rm -rf $(TEMP_DIR) $(TEST_BUILD_DIR)
+
+.PHONY: comparisons
+comparisons: mkdir test-mkdir
+	# make comparisons
+	$(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/compare_files.o $(TEST_SRC_DIR)/compare_files.c
+	$(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/compare_directories.o $(TEST_SRC_DIR)/compare_directories.c
+	$(LD) -o $(BIN_DIR)/compare-files $(TEST_BUILD_DIR)/compare_files.o
+	$(LD) -o $(BIN_DIR)/compare-dirs $(TEST_BUILD_DIR)/compare_directories.o 
+	@echo "Compiling $(TEST_BUILD_DIR)/compare_files.o"
+	$(V) $(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/compare_files.o $(TEST_SRC_DIR)/compare_files.c
+	@echo "Compiling $(TEST_BUILD_DIR)/compare_directories.o"
+	$(V) $(CC) -c $(CFLAG) -o $(TEST_BUILD_DIR)/compare_directories.o $(TEST_SRC_DIR)/compare_directories.c
+	@echo "Linking $(BIN_DIR)/compare-files"
+	$(V) $(LD) -o $(BIN_DIR)/compare-files $(TEST_BUILD_DIR)/compare_files.o
+	@echo "Linking $(BIN_DIR)/compasre-dirs"
+	$(V) $(LD) -o $(BIN_DIR)/compare-dirs $(TEST_BUILD_DIR)/compare_directories.o
+
+.PHONY: benchmark
+benchmark: bench-build $(DATA_DIR)/benchmark
+
+.PHONY: bench-mkdir
+bench-mkdir: mkdir
+	$(V) mkdir -p $(BENCH_BUILD_DIR)
+
+.PHONY: bench-clean
+bench-clean:
+	$(V) -rm -rf $(BENCH_BUILD_DIR) $(DATA_DIR)/benchmark
+
+.PHONY: bench-build
+bench-build: bench-mkdir bench-compile
+
+.PHONY: bench-compile
+bench-compile: $(BENCH_OBJ_LIST)
+	@echo "Linking $(BIN_DIR)/generate"
+	$(V) $(LD) $(CFLAG) -o $(BIN_DIR)/generate $(BENCH_OBJ_LIST)
+
+$(BENCH_BUILD_DIR)/%.o:
+	@echo "Compiling $@"
+	$(V) $(CC) -c $(CFLAG) -o $@ $(BENCH_SRC_DIR)/$(notdir $(@:%.o=%.c))
+
+$(DATA_DIR)/benchmark:
+	@echo "Generating data/benchmark"
+	$(V) scripts/generate_bench_data.py $(BIN_DIR)/generate $(DATA_DIR)/benchmark
+
+
+$(TEST_BUILD_DIR)/%.o:
+	@echo "Compiling $@"
+	$(V) $(CC) -c $(CFLAG) -o $@ $(TEST_SRC_DIR)/$(notdir $(@:%.o=%.c))
+
+$(BIN_DIR)/imartingraham:
+	git clone https://github.com/imartingraham/csv-split $(BIN_DIR)/imartingraham 
+ 299  benchmark/v0.0.2-1.csv 
+Viewed
+Large diffs are not rendered by default.
+
+ 14  benchmark/v0.0.2-1.md 
+Viewed
+@@ -0,0 +1,14 @@
+This benchmark uses
+
+```python
+row_min, row_max, row_step = 100, 10001, 100
+col_min, col_max, col_step = 100, 10001, 100
+chr_min, chr_max, chr_step = 100, 10001, 100
+```
+
+and a split length of `1000`. Further, hyperfine was set to use 100 warmup and at least 1000 actual runs.
+
+Here are the results:
+![Benchmark results](v0.0.2-1.png)
+
+You can see that there are clear linear correlations between the running time and the numbers of lines, columns and characters. You can also see though, that there are some significant statistical outliers, which are mostly present for specific numbers of lines.
+ BIN +71.5 KB benchmark/v0.0.2-1.png 
+Viewed
+Binary file not shown.
+ 23  scripts/benchmark_imartingraham.sh 
+Viewed
+@@ -0,0 +1,23 @@
+#!/bin/sh
+DIR=$1
+NUM_LINES=$2
+OUT_LOG=$3
+if [ -z "$3" ]; then 
+    printf "Expected 3 arguments: <DATA-DIR> <NUM_LINES> <OUT_LOG>\n"
+    exit 1
+fi
+dout="./temp"
+rm -rf $dout
+files=$(find $DIR -type f | paste -sd ',')
+make bin/imartingraham
+BIN="ruby bin/imartingraham/csv-split.rb"
+hyperfine \
+    "$BIN -l $NUM_LINES -f {file} -n $dout/split" \
+    --export-csv $OUT_LOG \
+    -m 3 \
+    -i \
+    --warmup 3 \
+    -L file $files \
+    --prepare "mkdir -p $dout" \
+    --cleanup "rm -rf $dout" \
+    --show-output
+ 22  scripts/benchmark_miltfra.sh 
+Viewed
+@@ -0,0 +1,22 @@
+#!/bin/sh
+DIR=$1
+BIN=$2
+NUM_LINES=$3
+OUT_LOG=$4
+if [ -z "$4" ]; then 
+    printf "Expected 4 arguments: <DATA-DIR> <BINARY> <NUM_LINES> <OUT_LOG>\n"
+    exit 1
+fi
+dout="./temp"
+rm -rf $dout
+files=$(find $1 -type f | paste -sd ',')
+hyperfine \
+    "$BIN -l $NUM_LINES {file} -n $dout/split" \
+    --export-csv $OUT_LOG \
+    -m 1000 \
+    -i \
+    --warmup 100 \
+    -L file $files \
+    --prepare "mkdir -p $dout" \
+    --cleanup "rm -rf $dout" \
+    --show-output 
+ 22  scripts/benchmark_xsv.sh 
+Viewed
+@@ -0,0 +1,22 @@
+#!/bin/sh
+DIR=$1
+BIN=$2
+NUM_LINES=$3
+OUT_LOG=$4
+if [ -z "$4" ]; then 
+    printf "Expected 4 arguments: <DATA-DIR> <BINARY> <NUM_LINES> <OUT_LOG>\n"
+    exit 1
+fi
+dout="./temp"
+rm -rf $dout
+files=$(find $1 -type f | paste -sd ',')
+hyperfine \
+    "$BIN split -s $NUM_LINES $dout/xsv  {file}" \
+    --export-csv $OUT_LOG \
+    -m 3 \
+    -i \
+    --warmup 3 \
+    -L file $files \
+    --prepare "mkdir -p $dout" \
+    --cleanup "rm -rf $dout" \
+    --show-output 
+ 37  scripts/generate_bench_data.py 
+Viewed
+@@ -0,0 +1,37 @@
+#!/usr/bin/python
+import sys
+import os
+import subprocess
+
+
+def get_file_name(rows, columns, chars):
+    return f"{rows}_{columns}_{chars}.csv"
+
+
+def generate_file(binary_path, rows, columns, chars, output_dir):
+    return subprocess.run([
+        "sh", "-c",
+        f"{binary_path} {rows} {columns} {chars} > {output_dir}/{get_file_name(rows, columns,chars)}"
+    ])
+
+
+if len(sys.argv) != 3:
+    print("Expected exactly two arguments: <binary> <output-directory>")
+    sys.exit(1)
+
+GEN = sys.argv[1]
+DIR = sys.argv[2]
+
+row_min, row_max, row_step = 100, 10001, 100
+col_min, col_max, col_step = 100, 10001, 100
+chr_min, chr_max, chr_step = 100, 10001, 100
+
+if not os.path.isdir(DIR):
+    os.mkdir(DIR)
+
+for row in range(row_min, row_max, row_step):
+    generate_file(GEN, row, col_min, chr_min, DIR)
+for col in range(col_min, col_max, col_step):
+    generate_file(GEN, row_min, col, chr_min, DIR)
+for char in range(chr_min, chr_max, chr_step):
+    generate_file(GEN, row_min, col_min, char, DIR) 
+ 65  scripts/visualise_benchmark.py 
+Viewed
+@@ -0,0 +1,65 @@
+#!/usr/bin/python
+import pandas as pd
+from matplotlib import pyplot as plt
+import sys
+import math
+
+
+def get_params(parameter_file):
+    f = parameter_file[:-len('.csv')]
+    f = f[len('data/benchmark/'):]
+    return [int(x) for x in f.split('_')]
+
+
+def plot_map(axs, f, x, y, label):
+    axs.plot(list(map(f, x)), list(map(f, y)), label=label)
+
+
+if len(sys.argv) != 2:
+    print("Expected exactly one argument: <file-name>")
+    sys.exit(1)
+
+file_name = sys.argv[1]
+raw_benchmark_data = pd.read_csv(file_name)
+
+times = dict()
+entries_by_lines = dict()
+entries_by_cols = dict()
+entries_by_chars = dict()
+
+for i in range(len(raw_benchmark_data.index)):
+    row = raw_benchmark_data.iloc[i]
+    lines, cols, chars = get_params(row['parameter_file'])
+    entries_by_lines[lines] = entries_by_lines.get(lines, []) + [i]
+    entries_by_cols[cols] = entries_by_cols.get(cols, []) + [i]
+    entries_by_chars[chars] = entries_by_chars.get(chars, []) + [i]
+    times[(lines, cols, chars)] = float(row['mean'])
+
+default_lines = min(entries_by_lines.keys())
+default_cols = min(entries_by_cols.keys())
+default_chars = min(entries_by_chars.keys())
+
+lines = sorted(entries_by_lines.keys())
+times_by_lines = [times[(l, default_cols, default_chars)] for l in lines]
+
+cols = sorted(entries_by_cols.keys())
+times_by_cols = [times[(default_lines, c, default_chars)] for c in cols]
+
+chars = sorted(entries_by_chars.keys())
+times_by_chars = [times[(default_lines, default_cols, c)] for c in chars]
+
+f = lambda x: x # id(x) = x
+
+fig, axs = plt.subplots()
+
+fig.set_dpi(150)
+
+plot_map(axs, f, lines, times_by_lines, "N = Number of lines per file")
+plot_map(axs, f, cols, times_by_cols, "N = Number of columns per line")
+plot_map(axs, f, chars, times_by_chars, "N = Number of characters per cell")
+
+plt.xlabel("Problem size N")
+plt.ylabel("Time taken in seconds")
+
+plt.legend()
+plt.savefig(f"{'.'.join(file_name.split('.')[:-1])}.png") 
+ 26  src/benchmark/generate.c 
+Viewed
+@@ -0,0 +1,26 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main(int argc, char **argv) {
+  if (argc != 4) {
+    fprintf(stderr, "Expected 3 argumens, found %d\n", argc);
+    exit(1);
+  }
+  int num_rows     = atoi(argv[1]);
+  int num_cols     = atoi(argv[2]);
+  int len_col      = atoi(argv[3]);
+  size_t len_row   = num_cols * (len_col + 1);
+  char *row_buffer = malloc(len_row * sizeof(char));
+  int i, j;
+  for (i = 0; i < len_row - 1; i += len_col + 1) {
+    for (j = 0; j < len_col; j++) {
+      row_buffer[i + j] = 'A';
+    }
+    row_buffer[i + j] = ',';
+  }
+  row_buffer[i-1] = '\0';
+  for (i = 0; i < num_rows; i++) {
+    printf("%s\n", row_buffer);
+  }
+} 
+  18  src/config.c 
+Viewed
+@@ -7,12 +7,12 @@
+
+// Fills the fields of a given Config struct with default values.
+void initialise_config(struct Config *cfg) {
+  cfg->file_path             = DEFAULT_FILE_PATH;
+  cfg->new_file_name         = DEFAULT_NEW_FILE_NAME;
+  cfg->exclude_headers       = DEFAULT_EXCLUDE_HEADERS;
+  cfg->include_remainders    = DEFAULT_INCLUDE_REMAINDERS;
+  cfg->delimiter             = DEFAULT_DELIMITER;
+  cfg->line_count            = DEFAULT_LINE_COUNT;
+  cfg->in_file_path             = DEFAULT_FILE_PATH;
+  cfg->out_file_path         = DEFAULT_NEW_FILE_NAME;
+  cfg->do_exclude_headers       = DEFAULT_EXCLUDE_HEADERS;
+  cfg->do_include_remainders    = DEFAULT_INCLUDE_REMAINDERS;
+  cfg->delim             = DEFAULT_DELIMITER;
+  cfg->num_lines            = DEFAULT_LINE_COUNT;
+  cfg->remove_columns_l      = 0;
+  cfg->remove_columns        = NULL;
+  cfg->remove_columns_buffer = NULL;
+@@ -43,14 +43,14 @@ void process_config(struct Config *cfg) {
+  // Big `if` in case we need to add more processing.
+  if (cfg->remove_columns_buffer != NULL) {
+    cfg->remove_columns_l =
+        count_char(cfg->remove_columns_buffer, cfg->delimiter) + 1;
+        count_char(cfg->remove_columns_buffer, cfg->delim) + 1;
+    LOG("Found %lu columns to be removed.\n", cfg->remove_columns_l);
+    cfg->remove_columns = malloc(cfg->remove_columns_l * sizeof(char *));
+    char *begin, *end;
+    end = begin = cfg->remove_columns_buffer;
+    size_t i;
+    for (i = 0; i < cfg->remove_columns_l - 1; i++) {
+      while (*end != cfg->delimiter) {
+      while (*end != cfg->delim) {
+        end++;
+      }
+      add_colum_to_remove(cfg, begin, end, i);
+@@ -69,7 +69,7 @@ void parse_config(struct Config *cfg, const int argc, char **argv) {
+  for (size_t i = 1; i < argc;) {
+    parse_arg(cfg, argc, argv, &i);
+  }
+  if (!cfg->file_path) {
+  if (!cfg->in_file_path) {
+    fprintf(HELP_OUT, "Expected input file. Use --help to learn more.\n");
+    exit(PARSE_ERR);
+  }
+  16  src/config.h 
+Viewed
+@@ -4,19 +4,19 @@
+#include <stdio.h>
+#include <string.h>
+
+#define CSV_SPLIT_VERSION "v0.0.2"
+#define CSV_SPLIT_VERSION "v0.1.0"
+
+struct Config {
+  /* Strings */
+  const char *file_path;
+  const char *new_file_name;
+  const char *in_file_path;
+  const char *out_file_path;
+  /* Booleans */
+  char exclude_headers;
+  char include_remainders;
+  char do_exclude_headers;
+  char do_include_remainders;
+  /* Other values */
+  char delimiter;
+  char delim;
+  char *remove_columns_buffer;
+  size_t line_count;
+  size_t num_lines;
+  size_t remove_columns_l;
+  char **remove_columns;
+};
+@@ -27,7 +27,7 @@ void initialise_config(struct Config *cfg);
+// Function to parse given command line arguments to cfg fields.
+void parse_config(struct Config *cfg, const int argc, char **argv);
+
+void process_config(struct Config *config);
+void process_config(struct Config *cfg);
+
+void print_help(void);
+
+  30  src/flags.c 
+Viewed
+@@ -63,34 +63,34 @@ static size_t parse_flag_by_index(
+        exit(PARSE_ERR);
+      }
+      arg                = argv[arg_at];
+      cfg->new_file_name = arg;
+      cfg->out_file_path = arg;
+      return *at += 2;  // Read extra argument.
+    case EXCLUDE_HEADERS: cfg->exclude_headers = 1; return *at += 1;
+    case EXCLUDE_HEADERS: cfg->do_exclude_headers = 1; return *at += 1;
+    case LINE_COUNT:
+      if (at + 1 == argc) {
+      if (*at + 1 == argc) {
+        ERR_LOG("Expected line count. Use --help to learn more.\n");
+        exit(PARSE_ERR);
+      }
+      if (!is_natural(argv[arg_at])) {
+        ERR_LOG("Expected valid positive integer as line count.\n");
+      }
+      cfg->line_count = atoi(argv[arg_at]);
+      if (cfg->line_count <= 0) {
+      cfg->num_lines = atoi(argv[arg_at]);
+      if (cfg->num_lines <= 0) {
+        ERR_LOG("Line count needs to be greater than zero.\n");
+        exit(PARSE_ERR);
+      }
+      LOG("Found line count: %lu\n", cfg->line_count);
+      LOG("Found line count: %lu\n", cfg->num_lines);
+      return *at += 2;  // Read extra argument.
+    case DELIMITER:
+      if (arg_at == argc ||
+          strlen(argv[arg_at]) > 1) {  // Expected single character.
+        ERR_LOG("Expected delimiter. Use --help to learn more.\n");
+        exit(PARSE_ERR);
+      }
+      cfg->delimiter = argv[arg_at][0];
+      cfg->delim = argv[arg_at][0];
+      return *at += 2;
+    case REMOVE_COLUMNS:
+      if (at + 1 == argc) {  // Any string will be treated as a file name, as
+      if (*at + 1 == argc) {  // Any string will be treated as a file name, as
+        // lon as it's there.
+        ERR_LOG("Expected file name. Use --help to learn more.\n");
+        exit(PARSE_ERR);
+@@ -101,7 +101,7 @@ static size_t parse_flag_by_index(
+        exit(PARSE_ERR);
+      }
+      return *at += 2;
+    case INCLUDE_REMAINDERS: cfg->include_remainders = 1; return (*at)++;
+    case INCLUDE_REMAINDERS: cfg->do_include_remainders = 1; return (*at)++;
+    case HELP: print_help(); exit(0);
+    default: exit(PARSE_ERR);
+  }
+@@ -121,21 +121,21 @@ static int parse_short_flag(
+    size_t *at) {
+  size_t subflag = 1;  // First character is -, so first flag char is at 1.
+  size_t start   = *at;
+  size_t tmp_at;
+  size_t temp_at;
+  char found;
+  do {
+    found = 0;
+    for (struct Flag *f = FLAGS; f < FLAGS + FLAG_COUNT; f++) {
+      if (argv[start][subflag] == f->short_id) {
+        tmp_at = *at;
+        temp_at = *at;
+        LOG("Found short flag for %s\n", f->long_id);
+        parse_flag_by_index(cfg, argc, argv, &tmp_at, f - FLAGS);
+        if (tmp_at >
+        parse_flag_by_index(cfg, argc, argv, &temp_at, f - FLAGS);
+        if (temp_at >
+            start +
+                1) {  // Boolean flags are not allowed after flags
+                      // that require a value. (e.g. `-ne <FILE>` is illegal)
+          LOG("Last flag was non-boolean.\n");
+          return *at = tmp_at;
+          return *at = temp_at;
+        }
+        found = 1;
+        break;
+@@ -200,7 +200,7 @@ size_t parse_arg(struct Config *cfg, const int argc, char **argv, size_t *at) {
+  LOG("Parsing argument at %lu\n", *at);
+  if (!is_flag(argv[*at])) {
+    LOG("Found file path\n");
+    cfg->file_path = argv[*at];
+    cfg->in_file_path = argv[*at];
+    return (*at)++;
+  }
+  if (!is_long_flag(argv[*at])) {
+  3  src/flags.h 
+Viewed
+@@ -95,8 +95,7 @@ static struct Flag FLAGS[] = {
+    FLAG_INCLUDE_REMAINDERS,
+    FLAG_HELP};
+
+size_t
+    parse_arg(struct Config *config, const int argc, char **argv, size_t *at);
+size_t parse_arg(struct Config *cfg, const int argc, char **argv, size_t *at);
+
+size_t max_flag_length();
+
+  116  src/split.c 
+Viewed
+@@ -57,7 +57,7 @@ static void load_headers(
+  }
+  line_len = remove_linebreak(line, line_len);
+  // Counting columns and replacing delim with constant WORKING_DELIM
+  *len = strsub(line, cfg->delimiter, WORKING_DELIM) +
+  *len = strsub(line, cfg->delim, WORKING_DELIM) +
+         1;  // +1 because there is one more field than delimiters.
+  // Inserting column headers
+  *headers = malloc(*len * sizeof(char *));
+@@ -75,19 +75,19 @@ static void load_headers(
+}
+
+// How many files have been written.
+size_t file_count = 0;
+size_t num_files = 0;
+
+// Removes the columns specified in the CONFIG from the INCLUDE_COLUMN set.
+static size_t find_relevant_columns(
+    const struct Config *config,
+    const struct Config *cfg,
+    const size_t input_length,
+    char **headers,
+    char *include_column) {
+  size_t output_length = input_length;
+  for (size_t i = 0; i < input_length; i++) {
+    include_column[i] = 1;
+    for (size_t j = 0; j < config->remove_columns_l; j++) {
+      if (!strcmp(headers[i], config->remove_columns[j])) {
+    for (size_t j = 0; j < cfg->remove_columns_l; j++) {
+      if (!strcmp(headers[i], cfg->remove_columns[j])) {
+        include_column[i] = 0;
+        output_length--;
+        break;
+@@ -101,7 +101,7 @@ static size_t find_relevant_columns(
+// array containing only those columns that are not to be excluded by the
+// config.
+static void filter_line(
+    const struct Config *config,
+    const struct Config *cfg,
+    const size_t input_length,   // number of columns in input file
+    char **input,                // string values for each input column
+    const char *include_column,  // whether the ith column should be written to
+@@ -111,7 +111,6 @@ static void filter_line(
+  if (output_length == input_length) {  // If there's nothing to filter, we can
+                                        // just copy the enitre array.
+    memcpy(output, input, input_length * sizeof(char *));
+    LOG("Skipped filtering because input and output sizes are identical.\n");
+    return;
+  }
+  size_t i, j;
+@@ -127,9 +126,9 @@ static void filter_line(
+
+// Holds memory for the current set of lines that is being processed.
+struct Batch {
+  size_t line_count;
+  size_t column_count;
+  size_t *line_lengths;
+  size_t num_lines;
+  size_t num_cols;
+  size_t *line_lens;
+  char **lines;
+  char ***values;
+  char *file_name;
+@@ -139,22 +138,21 @@ struct Batch {
+// copied so they rely on the line buffer being valid. Additionally, the line
+// buffer is altered to handle those references.
+static void load_values(
+    const struct Config *config,
+    const struct Config *cfg,
+    char *line,  // A line buffer containing comma separated values WITHOUT the
+                 // linebreak
+    const size_t input_column_count,
+    const size_t output_column_count,
+    char **values) {
+  size_t actual_column_count;
+  size_t actual_num_cols;
+  remove_linebreak(line, strlen(line));
+  if (input_column_count !=
+      (actual_column_count =
+           strsub(line, config->delimiter, WORKING_DELIM) + 1)) {
+      (actual_num_cols = strsub(line, cfg->delim, WORKING_DELIM) + 1)) {
+    fprintf(
+        stderr,
+        "Unexpected number of columns in input. (expected: %lu, found: %lu)\n",
+        input_column_count,
+        actual_column_count);
+        actual_num_cols);
+    exit(1);
+  }
+  char *begin, *end, **next_value;
+@@ -165,97 +163,94 @@ static void load_values(
+    *(next_value++) = begin;
+    begin           = end;
+  }
+  LOG("Wrote %lu values\n", next_value - values);
+}
+
+// Writes a single line to F filled with COLUMN_COUNT fields of VALUES separated
+// by CONFIG->DELIMITER.
+static void write_line(
+    const struct Config *config,
+    const struct Config *cfg,
+    FILE *f,
+    const size_t column_count,
+    char **values) {
+  fprintf(f, "%s", values[0]);  // Having less than one column is impossible.
+  for (size_t i = 1; i < column_count; i++) {
+    fprintf(f, "%c%s", config->delimiter, values[i]);
+    fprintf(f, "%c%s", cfg->delim, values[i]);
+  }
+  putc('\n', f);
+}
+
+// Writes OUTPUT to the correct file using CONFIG and HEADERS for formatting.
+static void write_batch(
+    const struct Config *config,
+    const struct Config *cfg,
+    char **headers,
+    struct Batch *output) {
+  LOG("Writing batch #%lu to file (%s).\n", file_count - 1, output->file_name);
+  LOG("Writing batch #%lu to file (%s).\n", num_files - 1, output->file_name);
+  FILE *f = fopen(output->file_name, "w+");
+  if (f == NULL) {
+    ERR_LOG(
+        "An error occured opening or creating file #%lu (%s).\n",
+        file_count - 1,
+        num_files - 1,
+        output->file_name);
+    exit(1);
+  }
+  if (!config->exclude_headers) {
+  if (!cfg->do_exclude_headers) {
+    LOG("Writing headers.\n");
+    write_line(config, f, output->column_count, headers);
+    write_line(cfg, f, output->num_cols, headers);
+  }
+  LOG("Writing values.\n");
+  for (size_t i = 0; i < output->line_count; i++) {
+    write_line(config, f, output->column_count, output->values[i]);
+  for (size_t i = 0; i < output->num_lines; i++) {
+    write_line(cfg, f, output->num_cols, output->values[i]);
+  }
+  fclose(f);
+}
+
+// Reads the next set of lines from the input and processes them.
+static void process_batch(
+    const struct Config *config,
+    const struct Config *cfg,
+    FILE *file,
+    const size_t input_column_count,
+    const char *include_column,
+    char **headers,
+    struct Batch *output) {  // Buffer that holds all the necessary information
+                             // for the current set of lines.
+  LOG("Processing batch.\n");
+  char *line;
+  size_t len;
+  size_t i;
+  char **line_ptr;
+  size_t *len_ptr, i;
+  ssize_t read;
+  char *value_buffer[output->column_count];
+  sprintf(output->file_name, "%s%lu.csv", config->new_file_name, file_count++);
+  for (i = 0; i < config->line_count; i++) {
+    line = (output->lines)[i];
+    len  = (output->line_lengths)[i];
+    read = getline(&line, &len, file);
+  char *value_buffer[output->num_cols];
+  sprintf(output->file_name, "%s%lu.csv", cfg->out_file_path, num_files++);
+  for (i = 0; i < cfg->num_lines; i++) {
+    line_ptr = output->lines + i;
+    len_ptr  = output->line_lens + i;
+    read     = getline(line_ptr, len_ptr, file);
+    if (read == -1) {
+      if (config->include_remainders) {
+      if (cfg->do_include_remainders) {
+        LOG("Writing remainders\n");
+        output->line_count = i;
+        write_batch(config, headers, output);
+        break;
+      }
+      return;
+    }
+    load_values(
+        config,
+        line,
+        cfg,
+        *line_ptr,
+        input_column_count,
+        output->column_count,
+        output->num_cols,
+        value_buffer);
+    filter_line(
+        config,
+        cfg,
+        input_column_count,
+        value_buffer,
+        include_column,
+        output->column_count,
+        output->num_cols,
+        output->values[i]);
+  }
+  output->line_count = i;
+  write_batch(config, headers, output);
+  output->num_lines = i;
+  write_batch(cfg, headers, output);
+}
+
+// Given a new BATCH this function initialises its values to be ready for use.
+static void initialise_batch(
+    const struct Config *config,
+    const struct Config *cfg,
+    struct Batch *batch,
+    const size_t max_lines,
+    const size_t cols) {
+@@ -264,31 +259,32 @@ static void initialise_batch(
+    // memory.
+    batch->lines = malloc(max_lines * sizeof(char *));
+    LOG("Allocating values\n");
+    batch->values       = malloc(max_lines * sizeof(char **));
+    batch->line_lengths = malloc(max_lines * sizeof(size_t));
+    batch->values    = malloc(max_lines * sizeof(char **));
+    batch->line_lens = malloc(max_lines * sizeof(size_t));
+    batch->file_name =
+        malloc(strlen(config->new_file_name) + FILE_NAME_SUFFIX_BUFFER);
+        malloc(strlen(cfg->out_file_path) + LEN_FILE_NAME_SUFFIX_BUFFER);
+    for (char ***p = batch->values; p - batch->values < max_lines; p++) {
+      LOG("Allocating sub_values\n");
+      *p = malloc(cols * sizeof(char *));
+    }
+    for (size_t *q = batch->line_lengths; q - batch->line_lengths < max_lines;
+         q++) {
+      *q = 0;
+    for (size_t *q = batch->line_lens; q - batch->line_lens < max_lines; q++) {
+      *q = LEN_INITIAL_LINE_BUFFER;
+    }
+    for (char **r = batch->lines; r - batch->lines < max_lines; r++) {
+      *r = malloc(LEN_INITIAL_LINE_BUFFER * sizeof(char));
+    }
+  }
+  batch->line_count   = 0;
+  batch->column_count = cols;
+  batch->num_lines = 0;
+  batch->num_cols  = cols;
+}
+
+// Splits a file by lines and writes them to outputs as specified in CFG.
+void split_csv(const struct Config *cfg) {
+  LOG("Splitting file\n");
+  if (access(cfg->file_path, F_OK) == -1) {
+    fprintf(stderr, "File does not exist. (%s)\n", cfg->file_path);
+  if (access(cfg->in_file_path, F_OK) == -1) {
+    fprintf(stderr, "File does not exist. (%s)\n", cfg->in_file_path);
+    exit(EXIT_FAILURE);
+  }
+  FILE *f = fopen(cfg->file_path, "r");
+  FILE *f = fopen(cfg->in_file_path, "r");
+  // Processing file header.
+  // TODO: Include option to process files without headers.
+  char **input_headers = NULL;
+@@ -312,13 +308,13 @@ void split_csv(const struct Config *cfg) {
+      output_length);
+  struct Batch output_buffer = {0, 0, NULL, NULL, NULL};
+  do {
+    initialise_batch(cfg, &output_buffer, cfg->line_count, output_length);
+    initialise_batch(cfg, &output_buffer, cfg->num_lines, output_length);
+    process_batch(
+        cfg,
+        f,
+        input_length,
+        include_column,
+        output_headers,
+        &output_buffer);
+  } while (output_buffer.line_count == cfg->line_count);
+  } while (output_buffer.num_lines == cfg->num_lines);
+} 
+ 3  src/split.h 
+Viewed
+@@ -1,7 +1,8 @@
+#ifndef SPLIT_H
+#define SPLIT_H
+
+#define FILE_NAME_SUFFIX_BUFFER 128
+#define LEN_FILE_NAME_SUFFIX_BUFFER 128
+#define LEN_INITIAL_LINE_BUFFER 1024
+
+#include "config.h"
+
+© 2021 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About

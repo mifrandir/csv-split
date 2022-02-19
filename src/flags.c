@@ -63,23 +63,23 @@ static size_t parse_flag_by_index(
         exit(PARSE_ERR);
       }
       arg                = argv[arg_at];
-      cfg->new_file_name = arg;
+      cfg->out_file_path = arg;
       return *at += 2;  // Read extra argument.
-    case EXCLUDE_HEADERS: cfg->exclude_headers = 1; return *at += 1;
+    case EXCLUDE_HEADERS: cfg->do_exclude_headers = 1; return *at += 1;
     case LINE_COUNT:
-      if (at + 1 == argc) {
+      if (*at + 1 == argc) {
         ERR_LOG("Expected line count. Use --help to learn more.\n");
         exit(PARSE_ERR);
       }
       if (!is_natural(argv[arg_at])) {
         ERR_LOG("Expected valid positive integer as line count.\n");
       }
-      cfg->line_count = atoi(argv[arg_at]);
-      if (cfg->line_count <= 0) {
+      cfg->num_lines = atoi(argv[arg_at]);
+      if (cfg->num_lines <= 0) {
         ERR_LOG("Line count needs to be greater than zero.\n");
         exit(PARSE_ERR);
       }
-      LOG("Found line count: %lu\n", cfg->line_count);
+      LOG("Found line count: %lu\n", cfg->num_lines);
       return *at += 2;  // Read extra argument.
     case DELIMITER:
       if (arg_at == argc ||
@@ -87,10 +87,10 @@ static size_t parse_flag_by_index(
         ERR_LOG("Expected delimiter. Use --help to learn more.\n");
         exit(PARSE_ERR);
       }
-      cfg->delimiter = argv[arg_at][0];
+      cfg->delim = argv[arg_at][0];
       return *at += 2;
     case REMOVE_COLUMNS:
-      if (at + 1 == argc) {  // Any string will be treated as a file name, as
+      if (*at + 1 == argc) {  // Any string will be treated as a file name, as
         // lon as it's there.
         ERR_LOG("Expected file name. Use --help to learn more.\n");
         exit(PARSE_ERR);
@@ -101,7 +101,7 @@ static size_t parse_flag_by_index(
         exit(PARSE_ERR);
       }
       return *at += 2;
-    case INCLUDE_REMAINDERS: cfg->include_remainders = 1; return (*at)++;
+    case INCLUDE_REMAINDERS: cfg->do_include_remainders = 1; return (*at)++;
     case HELP: print_help(); exit(0);
     default: exit(PARSE_ERR);
   }
@@ -121,21 +121,21 @@ static int parse_short_flag(
     size_t *at) {
   size_t subflag = 1;  // First character is -, so first flag char is at 1.
   size_t start   = *at;
-  size_t tmp_at;
+  size_t temp_at;
   char found;
   do {
     found = 0;
     for (struct Flag *f = FLAGS; f < FLAGS + FLAG_COUNT; f++) {
       if (argv[start][subflag] == f->short_id) {
-        tmp_at = *at;
+        temp_at = *at;
         LOG("Found short flag for %s\n", f->long_id);
-        parse_flag_by_index(cfg, argc, argv, &tmp_at, f - FLAGS);
-        if (tmp_at >
+        parse_flag_by_index(cfg, argc, argv, &temp_at, f - FLAGS);
+        if (temp_at >
             start +
                 1) {  // Boolean flags are not allowed after flags
                       // that require a value. (e.g. `-ne <FILE>` is illegal)
           LOG("Last flag was non-boolean.\n");
-          return *at = tmp_at;
+          return *at = temp_at;
         }
         found = 1;
         break;
@@ -200,7 +200,7 @@ size_t parse_arg(struct Config *cfg, const int argc, char **argv, size_t *at) {
   LOG("Parsing argument at %lu\n", *at);
   if (!is_flag(argv[*at])) {
     LOG("Found file path\n");
-    cfg->file_path = argv[*at];
+    cfg->in_file_path = argv[*at];
     return (*at)++;
   }
   if (!is_long_flag(argv[*at])) {

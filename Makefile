@@ -1,6 +1,7 @@
 CC          = gcc
 LD          = gcc
 CFLAG       = -Wall -O3
+# CFLAG 		= -Wall -g3 # use for debugging
 PROG_NAME   = csv-split
 
 FILES_EXIST = ./scripts/files_exist.sh

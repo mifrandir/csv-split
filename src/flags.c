@@ -67,7 +67,7 @@ static size_t parse_flag_by_index(
       return *at += 2;  // Read extra argument.
     case EXCLUDE_HEADERS: cfg->exclude_headers = 1; return *at += 1;
     case LINE_COUNT:
-      if (at + 1 == argc) {
+      if (*(at + 1) == argc) {
         ERR_LOG("Expected line count. Use --help to learn more.\n");
         exit(PARSE_ERR);
       }
@@ -90,7 +90,7 @@ static size_t parse_flag_by_index(
       cfg->delimiter = argv[arg_at][0];
       return *at += 2;
     case REMOVE_COLUMNS:
-      if (at + 1 == argc) {  // Any string will be treated as a file name, as
+      if (*(at + 1) == argc) {  // Any string will be treated as a file name, as
         // lon as it's there.
         ERR_LOG("Expected file name. Use --help to learn more.\n");
         exit(PARSE_ERR);

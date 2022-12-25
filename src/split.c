@@ -1,10 +1,12 @@
 #include "split.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
+bool open = false;
+#define mark_open_close(open) if (open == true) open = false; else open = true;
 #include "config.h"
 #include "log.h"
 
@@ -13,8 +15,13 @@
 static size_t strsub(char *str, const char old, const char new) {
   size_t count = 0;
   char *p;
+  const char ENCLOSED = '"';
+  open = false; //safety measure
   for (p = str; *p != '\0'; p++) {
-    if (*p == old) {
+    if (*p == ENCLOSED) {   //quick fix for handling enclosed columns
+      mark_open_close(open);
+    }
+    if (*p == old && open == false) {
       *p = new;
       count++;
     }
